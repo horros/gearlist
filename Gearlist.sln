@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29728.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GearlistFront", "GearlistFront\GearlistFront.csproj", "{0D2D85BA-9BF5-4A43-97AC-B52EB245EC3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzFunctions", "AzFunctions\AzFunctions.csproj", "{BCF9A41B-954E-412D-9D36-21C12967357E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D2D85BA-9BF5-4A43-97AC-B52EB245EC3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D2D85BA-9BF5-4A43-97AC-B52EB245EC3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D2D85BA-9BF5-4A43-97AC-B52EB245EC3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D2D85BA-9BF5-4A43-97AC-B52EB245EC3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCF9A41B-954E-412D-9D36-21C12967357E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCF9A41B-954E-412D-9D36-21C12967357E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCF9A41B-954E-412D-9D36-21C12967357E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCF9A41B-954E-412D-9D36-21C12967357E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {578B06AB-B558-497B-9967-2311282DE8ED}
+	EndGlobalSection
+EndGlobal
