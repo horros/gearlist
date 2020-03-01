@@ -30,5 +30,11 @@ steps:
     command: 'publish'
     publishWebProjects: true
     zipAfterPublish: false
+    
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'gearlist_artifacts'
+    publishLocation: 'pipeline'
 
 
