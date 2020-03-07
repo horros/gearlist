@@ -32,7 +32,7 @@ namespace Des.Blazor.Authorization.Msal
                     clientId = config.ClientId,
                     authority = config.Authority,
                     // needed to avoid the issue with iFrame src
-                    redirectUri = "https://gearlist.cloud/",
+                    redirectUri = "https://www.gearlist.cloud/",
                     navigateToLoginRequestUrl = false,
                     validateAuthority = false
                 },
