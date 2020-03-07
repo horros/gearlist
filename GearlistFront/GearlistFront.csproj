@@ -17,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Projects\Personal\Blazor.Msal\src\Des.Blazor.Authorization.Msal\Des.Blazor.Authorization.Msal.csproj" />
+    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\js\" />
+    <ProjectReference Include="..\Msal.Blazor\Des.Blazor.Authorization.Msal\Des.Blazor.Authorization.Msal.csproj" />
   </ItemGroup>
 
 </Project>

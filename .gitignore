@@ -1,3 +1,9 @@
 .vs
 .vs/Gearlist
 .vscode
+Msal.Blazor/Tests
+Msal.Blazor/Sample
+Msal.Blazor/AppCreationScripts
+Msal.Blazor/.vs
+Msal.Blazor/Des.Blazor.Authorization.Msal/obj
+Msal.Blazor/Des.Blazor.Authorization.Msal/bin
