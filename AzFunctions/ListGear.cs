@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace AzFunctions
 {
-    public static class Function1
+    public static class ListGear
     {
-        [FunctionName("Function1")]
+        [FunctionName("ListGear")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
