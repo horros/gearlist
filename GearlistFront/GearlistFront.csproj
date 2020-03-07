@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\js\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Msal.Blazor\Des.Blazor.Authorization.Msal\Des.Blazor.Authorization.Msal.csproj" />
   </ItemGroup>
 
