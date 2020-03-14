@@ -4,7 +4,7 @@
     {
         string ClientId { get; }
         string Authority { get; }
-
+        string RedirectUri { get; }
         LoginModes LoginMode { get; }
     }
 }

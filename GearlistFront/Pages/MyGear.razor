@@ -1,0 +1,18 @@
+﻿@page "/mygear"
+@inject NavigationManager Navigation
+<h3>My Gear</h3>
+
+<button class="btn btn-primary" @onclick="NewGear">Add gear</button>
+
+@if (@gear == null) {
+    <p><em>Loading gear...</em></p>
+}
+
+@code {
+
+    private List<string> gear;
+
+    public void NewGear() {
+        Navigation.NavigateTo("/newgear");
+    }
+}

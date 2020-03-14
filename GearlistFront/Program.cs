@@ -19,7 +19,6 @@ namespace GearlistFront
             builder.Services.AddAzureActiveDirectory(
                 new Cfg()
             );
-
             await builder.Build().RunAsync();
         }
     }
@@ -27,7 +26,11 @@ namespace GearlistFront
     public class Cfg : IMsalConfig
     {
         public string ClientId => "1a2c6297-8aca-450f-bd75-605267d0d0b1";
-
+#if DEBUG
+        public string RedirectUri => "https://localhost:5000";
+#else
+        public string RedirectUri => "https://www.gearlist.cloud";
+#endif
         public string Authority => "https://mlgearlist.b2clogin.com/mlgearlist.onmicrosoft.com/B2C_1_signup_signin";
         public LoginModes LoginMode => LoginModes.Redirect;
     }

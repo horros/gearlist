@@ -1,0 +1,87 @@
+﻿@page "/newgear"
+@inject HttpClient Http
+@inject IAuthenticationManager AuthenticationManager
+<h3>New Gear</h3>
+
+<form name="new_gear" onsubmit="TrySave">
+
+    <table class="table">
+        <tr>
+            <td>Type</td>
+            <td><input placeholder="Eg. guitar, bass, keyboard..." type="text" @bind="@Type" /></td>
+        </tr>
+        <tr>
+            <td>Manufacturer</td>
+            <td><input placeholder="Eg. Martin, Sigma, Roland..." type="text" @bind="@Manufacturer" /></td>
+        </tr>
+        <tr>
+            <td>Model</td>
+            <td><input placeholder="Eg. M-36, 000M-15+, TR-808..." type="text" @bind="Model" /></td>
+        </tr>
+        <tr>
+            <td>Serial number</td>
+            <td><input type="text" @bind="Serial" /></td>
+        </tr>
+        <tr>
+            <td>Year</td>
+            <td><input type="text" @bind="Year" /></td>
+        </tr>
+        <tr>
+            <td>Purchase date</td>
+            <td><input type="date" @bind="PurchaseDate" /></td>
+        </tr>
+        <tr>
+            <td>Notes</td>
+            <td><textarea @bind="@Notes"></textarea></td>
+        </tr>
+    </table>
+    <input type="button" class="button" value="Save" onclick="@TrySave()" />
+</form>
+@code {
+
+    public string Type { get; set; }
+    public string Manufacturer { get; set; }
+    public string Model { get; set; }
+    public string Serial { get; set; }
+    public string Year { get; set; }
+    public DateTime PurchaseDate { get; set; }
+    public string Notes { get; set; }
+
+    public async Task TrySave()
+    {
+        var input = new GearModel {
+            Type = Type,
+            Manufacturer = Manufacturer,
+            Model = Model,
+            Serial = Serial,
+            Year = Year,
+            PurchaseDate = PurchaseDate,
+            Notes = Notes
+        };
+        try
+        {
+
+            var gettoken = await AuthenticationManager.GetAccessTokenAsync(
+                "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api"); 
+            var token = gettoken.AccessToken.ToString();
+            Http.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/html"));
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await Http.PostAsync(
+            "https://gearlistcloudapp.azurewebsites.net/api/ListGear?code=SoxXdeizUh8e196tdzk3MeLE1jpUBFsDPkMhfhIb03vtnLd9HPaf4Q==",
+            new StringContent(JsonSerializer.Serialize(input)));
+
+            System.Console.WriteLine(response);
+
+
+            if (response.IsSuccessStatusCode) {
+                var Message = response.Content;
+                Console.WriteLine(Message);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+}
