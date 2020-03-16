@@ -1,81 +1,77 @@
 ﻿@page "/newgear"
+@using GearlistFront.Model
 @inject HttpClient Http
 @inject IAuthenticationManager AuthenticationManager
+@inject NavigationManager NavigationManager
 <h3>New Gear</h3>
 
-<form name="new_gear" onsubmit="TrySave">
-
+<EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
     <table class="table">
         <tr>
             <td>Type</td>
-            <td><input placeholder="Eg. guitar, bass, keyboard..." type="text" @bind="@Type" /></td>
+            <td><InputText class="form-component" placeholder="Eg. guitar, bass, keyboard..."  @bind-Value="model.Type" /></td>
         </tr>
         <tr>
             <td>Manufacturer</td>
-            <td><input placeholder="Eg. Martin, Sigma, Roland..." type="text" @bind="@Manufacturer" /></td>
+            <td><InputText placeholder="Eg. Martin, Sigma, Roland..." @bind-Value="model.Manufacturer" /></td>
         </tr>
         <tr>
             <td>Model</td>
-            <td><input placeholder="Eg. M-36, 000M-15+, TR-808..." type="text" @bind="Model" /></td>
+            <td><InputText placeholder="Eg. M-36, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
         </tr>
         <tr>
             <td>Serial number</td>
-            <td><input type="text" @bind="Serial" /></td>
+            <td><InputText @bind-Value="model.Serial" /></td>
         </tr>
         <tr>
             <td>Year</td>
-            <td><input type="text" @bind="Year" /></td>
+            <td><InputText @bind-Value="model.Year" /></td>
         </tr>
         <tr>
             <td>Purchase date</td>
-            <td><input type="date" @bind="PurchaseDate" /></td>
+            <td><InputDate @bind-Value="model.PurchaseDate" /></td>
         </tr>
         <tr>
             <td>Notes</td>
-            <td><textarea @bind="@Notes"></textarea></td>
+            <td><InputTextArea @bind-Value="model.Notes"></InputTextArea></td>
         </tr>
     </table>
-    <input type="button" class="button" value="Save" onclick="@TrySave()" />
-</form>
+    <button class="button" type="submit">Save</button> 
+</EditForm>
 @code {
 
-    public string Type { get; set; }
-    public string Manufacturer { get; set; }
-    public string Model { get; set; }
-    public string Serial { get; set; }
-    public string Year { get; set; }
-    public DateTime PurchaseDate { get; set; }
-    public string Notes { get; set; }
+    GearModel model;
 
-    public async Task TrySave()
+    protected override void OnInitialized() {
+        model = new GearModel();
+    }
+
+    private async void HandleValidSubmit()
     {
-        var input = new GearModel {
-            Type = Type,
-            Manufacturer = Manufacturer,
-            Model = Model,
-            Serial = Serial,
-            Year = Year,
-            PurchaseDate = PurchaseDate,
-            Notes = Notes
-        };
+
         try
         {
 
             var gettoken = await AuthenticationManager.GetAccessTokenAsync(
-                "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api"); 
+                "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api");
             var token = gettoken.AccessToken.ToString();
-            Http.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/html"));
+
+            System.Console.WriteLine("Writing " + JsonSerializer.Serialize(model));
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await Http.PostAsync(
-            "https://gearlistcloudapp.azurewebsites.net/api/ListGear?code=SoxXdeizUh8e196tdzk3MeLE1jpUBFsDPkMhfhIb03vtnLd9HPaf4Q==",
-            new StringContent(JsonSerializer.Serialize(input)));
-
-            System.Console.WriteLine(response);
-
+            "https://gearlistcloudapp.azurewebsites.net/api/AddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==",
+            //"http://localhost:7071/api/AddGear",
+            new StringContent(JsonSerializer.Serialize(model)));
 
             if (response.IsSuccessStatusCode) {
-                var Message = response.Content;
-                Console.WriteLine(Message);
+                model = new GearModel();
+                Console.WriteLine("OK OK!");
+                NavigationManager.NavigateTo("/mygear");
+
+            } else {
+                // Error saving or sum'n
             }
         }
         catch (Exception e)

@@ -3,22 +3,11 @@
 @inject HttpClient HttpClient
 <h1>Welcome to Gearlist!</h1>
 
-This is an app where musicians can keep a track of their gear. To get started, hit the Log In button.
-
 <AuthorizeView>
-    @result
+    <NotAuthorized>
+        This is an app where musicians can keep a track of their gear. To get started, hit the Log In button.
+    </NotAuthorized>
+    <Authorized>
+        Welcome. To add gear, click the "My gear" menu item on the left. Kek.
+    </Authorized>
 </AuthorizeView>
-
-@code {
-    public string result;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var token = await AuthenticationManager.GetAccessTokenAsync(
-            "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api");
-
-        result = token.AccessToken.ToString();
-
-        System.Console.WriteLine("Token: " + result);
-    }
-}
