@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace GearlistFront.Model
+namespace AzFunctions.Model
 {
     public class GearModel
     {

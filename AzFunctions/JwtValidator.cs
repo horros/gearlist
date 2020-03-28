@@ -38,7 +38,6 @@ namespace AzFunctions
 
             var config = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
             var issuer = "https://mlgearlist.b2clogin.com/mlgearlist.onmicrosoft.com/B2C_1_signup_signin";
-            //var audience = Environment.GetEnvironmentVariable("AUDIENCE");
 
             var validationParameter = new TokenValidationParameters()
             {
@@ -49,13 +48,14 @@ namespace AzFunctions
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
                 IssuerSigningKeys = config.SigningKeys,
-                // This claim is in the Azure AD B2C token; this code tells the web app to "absorb" the token "name" and place it in the user object
                 NameClaimType = "name"
-                
             };
 
             ClaimsPrincipal result = null;
             var tries = 0;
+
+            JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
 
             while (result == null && tries <= 1)
             {
@@ -75,7 +75,6 @@ namespace AzFunctions
                 catch (SecurityTokenException e)
                 {
                     throw e;
-                    return null;
                 }
             }
 

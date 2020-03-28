@@ -1,0 +1,91 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using AzFunctions.Model;
+using Microsoft.Azure.WebJobs.Extensions.CosmosDB;
+using System.Collections.Generic;
+using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Linq;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.Net.Http;
+using System.Net;
+using System.Text;
+
+namespace AzFunctions
+{
+    public static class ListGear
+    {
+        /// <summary>
+        /// Get a list of gear from Cosmos DB and return it to the front end
+        /// as a JSON-serialised GearModel -object
+        /// </summary>
+        /// <param name="req">The HTTP Request, we don't need that here</param>
+        /// <param name="documentClient">The Cosmos DB connection</param>
+        /// <param name="log">The Logger</param>
+        /// <returns></returns>
+        [FunctionName("ListGear")]
+        public static async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
+            [CosmosDB(
+                databaseName: "gear",
+                collectionName: "gear",
+                ConnectionStringSetting = "COSMOSDB_CONNECTION_STRING")] DocumentClient documentClient,
+            ILogger log)
+        {
+
+            /**
+             * Slightly wonky, but this gets the raw JWT Bearer from the Authorization header,
+             * constructs an AuthenticationHeaderValue and checks against AAD B2C that the JWT
+             * is valid
+             **/
+            ClaimsPrincipal principal;
+            var hdr = req.Headers["Authorization"];
+            var token = hdr.ToString().Replace("Bearer ", "");
+            var auth = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            if ((principal = await Security.ValidateTokenAsync(auth)) == null)
+            {
+                return new UnauthorizedResult();
+            }
+            // Get the sub (subject) claim from the principal, 
+            // this is an AAD B2C GUID that identifies the user
+            string sub = null;
+            foreach (var claim in principal.Claims)
+            {
+                if (claim.Type == "sub")
+                {
+                    sub = claim.Value;
+                }
+            }
+
+            if (sub == null)
+            {
+                return new UnauthorizedResult();
+            }
+            
+            Uri gearCollectionUri = UriFactory.CreateDocumentCollectionUri("gear", "gear");
+            var options = new FeedOptions { EnableCrossPartitionQuery = true };
+            IEnumerable<GearModel> gearmodels = documentClient.CreateDocumentQuery<GearModel>(gearCollectionUri, options)
+                                                .Where(g => g.Owner == sub).AsEnumerable<GearModel>();
+
+            // Force the JSON serializer to not change PascalCase names
+            // to camelCase just to make it easier with the frontend
+            var jsonOpts = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null
+            };
+           
+            return new OkObjectResult(JsonSerializer.Serialize(gearmodels, jsonOpts));
+
+        }
+
+    }
+}

@@ -1,73 +1,91 @@
 ﻿@page "/mygear"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager Navigation
-@inject IAuthenticationManager AuthenticationManager
-@inject HttpClient Http
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize]
 <h3>My Gear</h3>
 
-<button class="btn btn-primary" @onclick="NewGear">Add gear</button>
+<RadzenButton Click="NewGear" Text="Add gear"></RadzenButton>
 
-@if (@gear == null) {
-<p><em>Loading gear...</em></p>
-} else {
-    <p>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Type</th>
-                    <th scope="col">Manufacturer</th>
-                    <th scope="col">Model</th>
-                    <th scope="col">Serial number</th>
-                    <th scope="col">Year</th>
-                    <th scope="col">Purchase date</th>
-                    <th scope="col">Notes</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(GearModel item in @gear) {
-                    <tr>
-                        <td>@item.Type</td>
-                        <td>@item.Manufacturer</td>
-                        <td>@item.Model</td>
-                        <td>@item.Serial</td>
-                        <td>@item.Year</td>
-                        <td>@item.PurchaseDate</td>
-                        <td>@item.Notes</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </p>
+@if (@gear == null)
+{
+    <p><em>Loading gear...</em></p>
 }
+else
+{
 
+    <RadzenDataList WrapItems="false" AllowPaging="false" Data="@gear" TItem="GearModel">
+        <Template Context="item">
+            <RadzenCard Style="width: 300px;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div>Type:</div>
+                        <b>@item.Type</b>
+                        <div style="margin-top:20px">Manufacturer:</div>
+                        <b>@item.Manufacturer</b>
+                        <br />
+                        <RadzenImage Path="@GenerateImageUrl(item)" Style="width:100px;" />
+                    </div>
+                    <div class="col-md-6">
+                        <div>Model:</div>
+                        <b>@item.Model</b>
+                        <div style="margin-top:20px">Year:</div>
+                        <b>@item.Year</b>
+                        <div style="margin-top:20px">Serial number:</div>
+                        <b>@item.Serial</b>
+                        <div style="margin-top:20px">Notes:</div>
+                        <b>@item.Notes</b>
+                    </div>
+                </div>
+            </RadzenCard>
+        </Template>
+
+    </RadzenDataList>
+}
 
 @code {
 
-    private List<GearModel> gear;
+    private IEnumerable<GearModel> gear;
+    string sub = "";
+    string image = "";
 
-    public void NewGear() {
+    public void NewGear()
+    {
         Navigation.NavigateTo("/newgear");
     }
 
-    protected override async Task OnInitializedAsync() {
-        if (gear == null) {
+    public string GenerateImageUrl(GearModel model)
+    {
+        image = model.Images != null && model.Images.FirstOrDefault() != null ?
+            $"https://gearimages.blob.core.windows.net/images/{sub}/{model.GearId}/{model.Images.First()}" :
+            "";
+        Console.WriteLine("Generate image URL: " + image);
+        return image;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (gear == null)
+        {
             try
             {
+                var httpClient = new HttpClient();
 
-                var gettoken = await AuthenticationManager.GetAccessTokenAsync(
-                    "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api");
-                var token = gettoken.AccessToken.ToString();
+                var tokenResult = await AuthenticationService.RequestAccessToken();
 
-                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await Http.GetAsync(
-                "https://gearlistcloudapp.azurewebsites.net/api/ListGear"
-                // "http://localhost:7071/api/ListGear"
-                );
+                if (tokenResult.TryGetToken(out var token))
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+                    gear = await httpClient.GetJsonAsync<IEnumerable<GearModel>>("https://gearlistcloudapp.azurewebsites.net/api/ListGear");
+                }
 
-                if (response.IsSuccessStatusCode) {
-                    Console.WriteLine(await response.Content.ReadAsStringAsync());
-                    gear = JsonSerializer.Deserialize<List<GearModel>>(await response.Content.ReadAsStringAsync());
-                } else {
-                    Console.WriteLine("RESPONSE: " + response);
+                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                foreach (var claim in state.User.Claims)
+                {
+                    if (claim.Type == "sub") sub = claim.Value;
                 }
             }
             catch (Exception e)

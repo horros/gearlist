@@ -1,51 +1,99 @@
 ﻿@page "/newgear"
 @using GearlistFront.Model
-@inject HttpClient Http
-@inject IAuthenticationManager AuthenticationManager
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager NavigationManager
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize]
 <h3>New Gear</h3>
 
 <EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    <RadzenProgressBar @bind-Value="progress" Visible="progbarvisible" />
+
     <table class="table">
         <tr>
             <td>Type</td>
-            <td><InputText class="form-component" placeholder="Eg. guitar, bass, keyboard..."  @bind-Value="model.Type" /></td>
+            <td><RadzenTextBox Placeholder="Eg. guitar, bass, keyboard..." @bind-Value="model.Type" /></td>
         </tr>
         <tr>
             <td>Manufacturer</td>
-            <td><InputText placeholder="Eg. Martin, Sigma, Roland..." @bind-Value="model.Manufacturer" /></td>
+            <td><RadzenTextBox Placeholder="Eg. Martin, Sigma, Roland..." @bind-Value="model.Manufacturer" /></td>
         </tr>
         <tr>
             <td>Model</td>
-            <td><InputText placeholder="Eg. M-36, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
+            <td><RadzenTextBox Placeholder="Eg. M-36, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
         </tr>
         <tr>
             <td>Serial number</td>
-            <td><InputText @bind-Value="model.Serial" /></td>
+            <td><RadzenTextBox @bind-Value="model.Serial" /></td>
         </tr>
         <tr>
             <td>Year</td>
-            <td><InputText @bind-Value="model.Year" /></td>
+            <td><RadzenTextBox @bind-Value="model.Year" /></td>
         </tr>
         <tr>
             <td>Purchase date</td>
-            <td><InputDate @bind-Value="model.PurchaseDate" /></td>
+            <td><RadzenDatePicker DateFormat="dd.MM.yyyy" @bind-Value="model.PurchaseDate" /></td>
         </tr>
         <tr>
             <td>Notes</td>
-            <td><InputTextArea @bind-Value="model.Notes"></InputTextArea></td>
+            <td><RadzenTextBox @bind-Value="model.Notes"></RadzenTextBox></td>
         </tr>
+        <tr>
+            <td>Images</td>
+            <td>
+                <InputFile OnChange="HandleSelection" UnmatchedParameters="inputParams" />
+
+                @if (selectedFiles != null)
+                {
+                    foreach (var file in selectedFiles)
+                    {
+                        <RadzenCard>
+                            @file.Name (@file.Size)
+                        </RadzenCard>
+                    }
+                }
+
+            </td>
+        </tr>
+
+
     </table>
-    <button class="button" type="submit">Save</button> 
+    <RadzenButton ButtonType="ButtonType.Submit" Text="Save"></RadzenButton>
 </EditForm>
+
+@currentTask
 @code {
 
-    GearModel model;
+    double progress = 0;
+    bool progbarvisible = false;
+    string currentTask = "";
 
-    protected override void OnInitialized() {
+    IFileListEntry[] selectedFiles;
+
+    Dictionary<string, object> inputParams { get; set; } =
+        new Dictionary<string, object>()
+        {
+            {"accept", "image/jpg,image/jpeg,image/png" },
+            {"multiple", "multiple" }
+        };
+
+
+    GearModel model = null;
+
+    void HandleSelection(IFileListEntry[] files)
+    {
+        selectedFiles = files;
+    }
+
+    protected override void OnInitialized()
+    {
         model = new GearModel();
+        progress = 10;
     }
 
     private async void HandleValidSubmit()
@@ -54,30 +102,101 @@
         try
         {
 
-            var gettoken = await AuthenticationManager.GetAccessTokenAsync(
-                "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api");
-            var token = gettoken.AccessToken.ToString();
+            var numFiles = selectedFiles.Length;
+            progress = 100 / numFiles + 1;
+            Console.WriteLine("Progress: " + progress);
+            progbarvisible = true;
+            currentTask = "Saving data...";
 
-            System.Console.WriteLine("Writing " + JsonSerializer.Serialize(model));
-            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await Http.PostAsync(
-            "https://gearlistcloudapp.azurewebsites.net/api/AddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==",
-            //"http://localhost:7071/api/AddGear",
-            new StringContent(JsonSerializer.Serialize(model)));
+            var httpClient = new HttpClient();
+            var tokenResult = await AuthenticationService.RequestAccessToken();
 
-            if (response.IsSuccessStatusCode) {
-                model = new GearModel();
-                Console.WriteLine("OK OK!");
+            if (tokenResult.TryGetToken(out var token))
+            {
+
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+                var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
+                   "http://localhost:7071/api/GenerateContainerSAS"));
+
+                var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
+
+                SASToken data = JsonSerializer.Deserialize<SASToken>(sastokenstring);
+
+                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var sub = "";
+                foreach (var claim in state.User.Claims)
+                {
+                    if (claim.Type == "sub") sub = claim.Value;
+                }
+                if (String.IsNullOrEmpty(sub))
+                {
+                    throw new Exception("Could not get subject from claims");
+                }
+
+                var uploadUrl = data.Uri;
+
+                var guid = Guid.NewGuid();
+
+                model.GearId = guid;
+
+                currentTask = "Uploading images...";
+                string nnow = DateTime.UtcNow.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+                var fileIdx = 0;
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("x-ms-date", nnow);
+                httpClient.DefaultRequestHeaders.Add("x-ms-version", "2017-07-29");
+                httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
+                foreach (var file in selectedFiles)
+                {
+                    progress = 100 / numFiles - fileIdx;
+                    Console.WriteLine("Progress: " + progress);
+
+                    StreamContent stream = new StreamContent(file.Data);
+                    var url = $"https://gearimages.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
+                    var r = await httpClient.PutAsync(url, stream);
+                    if (r.IsSuccessStatusCode)
+                    {
+                        model.Images.Add(file.Name);
+                    }
+                }
+
+                var requestJson = JsonSerializer.Serialize(model);
+
+                var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://gearlistcloudapp.azurewebsites.net/api/AddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==")
+                {
+                    Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json")
+                });
+
+                response.EnsureSuccessStatusCode();
+
+
+
                 NavigationManager.NavigateTo("/mygear");
-
-            } else {
-                // Error saving or sum'n
             }
+            else
+            {
+                throw new Exception("Could not get token");
+            }
+
+
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
             throw;
+        }
+    }
+
+    void OnProgress(UploadProgressArgs args)
+    {
+
+        if (args.Progress == 100)
+        {
+            foreach (var file in args.Files)
+            {
+
+            }
         }
     }
 }

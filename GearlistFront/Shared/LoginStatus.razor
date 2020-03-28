@@ -1,21 +1,28 @@
-﻿@inject IJSRuntime JS
-@inject IAuthenticationManager AuthenticationManager
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager Navigation
+@inject IAccessTokenProvider AuthenticationService
+@inject SignOutSessionStateManager SignOutManager
+
 <AuthorizeView>
     <Authorized>
         <span class="mr-5">Welcome <b>@context.User.Identity.Name</b></span>
-        <button class="btn btn-primary" @onclick="this.AuthenticationManager.SignOutAsync">Logout</button>
+        <RadzenButton Click="BeginLogout" Text="Log out"></RadzenButton>
     </Authorized>
     <NotAuthorized>
-        <button class="btn btn-primary" @onclick="@(e => this.AuthenticationManager.SignInAsync(this.Scopes))">Login</button>
+        <RadzenButton Click="@GoToLogin" Text="Log in"></RadzenButton>
     </NotAuthorized>
 </AuthorizeView>
 
 @code {
+    private async Task BeginLogout(MouseEventArgs args)
+    {
+        await SignOutManager.SetSignOutState();
+        Navigation.NavigateTo("authentication/logout");
+    }
 
-
-    [Parameter]
-    public string AdditionalScopes { get; set; }
-
-    private string[] Scopes => this.AdditionalScopes?.Split(',');
-
+    private void GoToLogin(MouseEventArgs args)
+    {
+        Navigation.NavigateTo($"authentication/login?returnUrl={Navigation.Uri}");
+    }
 }
