@@ -28,12 +28,8 @@ steps:
 
 - task: DotNetCoreCLI@2
   inputs:
-    command: 'build'
-    arguments: '-c Release'
-
-- task: DotNetCoreCLI@2
-  inputs:
     command: 'publish'
+    arguments: '-c Release'
     publishWebProjects: true
     zipAfterPublish: false
     
