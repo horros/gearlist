@@ -29,6 +29,12 @@ namespace AzFunctions
             ClaimsPrincipal principal;
             var hdr = req.Headers["Authorization"];
             var token = hdr.ToString().Replace("Bearer ", "");
+
+            if (String.IsNullOrEmpty(token))
+            {
+                return new UnauthorizedResult();
+            }
+
             var auth = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             
             if ((principal = await Security.ValidateTokenAsync(auth)) == null)

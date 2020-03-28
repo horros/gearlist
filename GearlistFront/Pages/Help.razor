@@ -1,25 +1,5 @@
-﻿@page "/"
-<h1>Welcome to Gearlist!</h1>
-<p>
-    <AuthorizeView>
-        <NotAuthorized>
-            <p>
-                This is an app where musicians can keep a track of their gear. To get started, hit the Log In button.
-            </p>
-            <p>
-                This site uses WebAssembly, so you need a fairly modern browser. You also need to allow popups for the
-                login/signup process.
-            </p>
-            <p>
-                Currently the service supports creating a local user (stored in Microsoft's Azure AD B2C in the West Europe region) 
-                or logging in with either your Google or your Microsoft account.
-            </p>
-        </NotAuthorized>
-        <Authorized>
-            Welcome. To add gear, click the "My gear" menu item on the left.
-        </Authorized>
-    </AuthorizeView>
-</p>
+﻿@page "/help"
+<h3>Help / FAQ</h3>
 
 <p>
     <strong>THIS SERVICE IS IN PRE-ALPHA STATE, USE AT YOUR OWN RISK</strong>
@@ -32,14 +12,14 @@
 </p>
 <p>
     Now that that's dealt with: Welcome! This is a service where for example musicians or audio technicians
-    can keep track of their gear. Obvousily this may be usable for anyone with lots of stuff that they need to 
+    can keep track of their gear. Obvousily this may be usable for anyone with lots of stuff that they need to
     keep track of, but as a hobby musician and hobby home studio enthusiast myself, that is my own main focus.
 </p>
 <p>
     My vision for the service is one where you can add all your instruments, microphones, rack gear and whatever
-    other equipment you have - with photos of them - so you have one place where all the data is. This way, if 
-    there is a fire or flood or break-in or other catastrophy, you have a list of everything for e.g. insurance 
-    companies. 
+    other equipment you have - with photos of them - so you have one place where all the data is. This way, if
+    there is a fire or flood or break-in or other catastrophy, you have a list of everything for e.g. insurance
+    companies.
 </p>
 <p>
     What I also envision is that once you have all your gear listed with serial numbers and notes, if an instrument

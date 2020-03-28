@@ -93,99 +93,94 @@
     protected override void OnInitialized()
     {
         model = new GearModel();
+        model.Images = new List<string>();
         progress = 10;
     }
 
     private async void HandleValidSubmit()
     {
 
-        try
+
+
+        var numFiles = selectedFiles.Length;
+        progress = 100 / numFiles + 1;
+        Console.WriteLine("Progress: " + progress);
+        progbarvisible = true;
+        currentTask = "Saving data...";
+
+        var httpClient = new HttpClient();
+        var tokenResult = await AuthenticationService.RequestAccessToken();
+
+        if (tokenResult.TryGetToken(out var token))
         {
 
-            var numFiles = selectedFiles.Length;
-            progress = 100 / numFiles + 1;
-            Console.WriteLine("Progress: " + progress);
-            progbarvisible = true;
-            currentTask = "Saving data...";
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+            var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
+               "https://gearlistcloudapp.azurewebsites.net/api/GenerateContainerSAS?code=wPadDcvB4IoY6E6juO8mLnhmBva6RD7UE4hvosGpWsngi5O2ZtlFBQ=="));
 
-            var httpClient = new HttpClient();
-            var tokenResult = await AuthenticationService.RequestAccessToken();
+            var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
 
-            if (tokenResult.TryGetToken(out var token))
+            SASToken data = JsonSerializer.Deserialize<SASToken>(sastokenstring);
+
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var sub = "";
+            foreach (var claim in state.User.Claims)
             {
-
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
-                var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
-                   "http://localhost:7071/api/GenerateContainerSAS"));
-
-                var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
-
-                SASToken data = JsonSerializer.Deserialize<SASToken>(sastokenstring);
-
-                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                var sub = "";
-                foreach (var claim in state.User.Claims)
-                {
-                    if (claim.Type == "sub") sub = claim.Value;
-                }
-                if (String.IsNullOrEmpty(sub))
-                {
-                    throw new Exception("Could not get subject from claims");
-                }
-
-                var uploadUrl = data.Uri;
-
-                var guid = Guid.NewGuid();
-
-                model.GearId = guid;
-
-                currentTask = "Uploading images...";
-                string nnow = DateTime.UtcNow.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
-
-                var fileIdx = 0;
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("x-ms-date", nnow);
-                httpClient.DefaultRequestHeaders.Add("x-ms-version", "2017-07-29");
-                httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
-                foreach (var file in selectedFiles)
-                {
-                    progress = 100 / numFiles - fileIdx;
-                    Console.WriteLine("Progress: " + progress);
-
-                    StreamContent stream = new StreamContent(file.Data);
-                    var url = $"https://gearimages.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
-                    var r = await httpClient.PutAsync(url, stream);
-                    if (r.IsSuccessStatusCode)
-                    {
-                        model.Images.Add(file.Name);
-                    }
-                }
-
-                var requestJson = JsonSerializer.Serialize(model);
-
-                var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://gearlistcloudapp.azurewebsites.net/api/AddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==")
-                {
-                    Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json")
-                });
-
-                response.EnsureSuccessStatusCode();
-
-
-
-                NavigationManager.NavigateTo("/mygear");
+                if (claim.Type == "sub") sub = claim.Value;
             }
-            else
+            if (String.IsNullOrEmpty(sub))
             {
-                throw new Exception("Could not get token");
+                throw new Exception("Could not get subject from claims");
             }
 
+            var uploadUrl = data.Uri;
 
+            var guid = Guid.NewGuid();
+
+            model.GearId = guid;
+
+            currentTask = "Uploading images...";
+            string nnow = DateTime.UtcNow.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+            var fileIdx = 0;
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Add("x-ms-date", nnow);
+            httpClient.DefaultRequestHeaders.Add("x-ms-version", "2017-07-29");
+            httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
+            foreach (var file in selectedFiles)
+            {
+                progress = 100 / numFiles - fileIdx;
+                Console.WriteLine("Progress: " + progress);
+
+                StreamContent stream = new StreamContent(file.Data);
+                var url = $"https://gearimages.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
+                var r = await httpClient.PutAsync(url, stream);
+
+                if (r.IsSuccessStatusCode)
+                {
+                    model.Images.Add(file.Name);
+                }
+            }
+
+            var requestJson = JsonSerializer.Serialize(model);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+
+            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://gearlistcloudapp.azurewebsites.net/api/AddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==")
+            {
+                Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json")
+            });
+
+            response.EnsureSuccessStatusCode();
+
+
+
+            NavigationManager.NavigateTo("/mygear");
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine(e);
-            throw;
+            throw new Exception("Could not get token");
         }
+
     }
 
     void OnProgress(UploadProgressArgs args)
