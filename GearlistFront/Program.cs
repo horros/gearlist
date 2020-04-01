@@ -19,14 +19,11 @@ namespace GearlistFront
             builder.Services.AddMsalAuthentication(options =>
             {
                 var authentication = options.ProviderOptions.Authentication;
-                authentication.Authority = "https://mlgearlist.b2clogin.com/mlgearlist.onmicrosoft.com/B2C_1_signup_signin";
-                authentication.ClientId = "1a2c6297-8aca-450f-bd75-605267d0d0b1";
+                authentication.Authority = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1_signup_signin";
+                authentication.ClientId = "f497bee3-a7ef-4984-a564-41206d334596";
                 authentication.ValidateAuthority = false;
-                options.ProviderOptions.DefaultAccessTokenScopes.Add(
-                    "https://mlgearlist.onmicrosoft.com/1a2c6297-8aca-450f-bd75-605267d0d0b1/api");
             });
-            
-
+           
             await builder.Build().RunAsync();
         }
     }

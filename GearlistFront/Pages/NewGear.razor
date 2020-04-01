@@ -116,7 +116,7 @@
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
             var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
-               "https://gearlistcloudapp.azurewebsites.net/api/GenerateContainerSAS?code=wPadDcvB4IoY6E6juO8mLnhmBva6RD7UE4hvosGpWsngi5O2ZtlFBQ=="));
+               "https://gearlistfuncs.azurewebsites.net/api/GenerateContainerSAS?code=wPadDcvB4IoY6E6juO8mLnhmBva6RD7UE4hvosGpWsngi5O2ZtlFBQ=="));
 
             var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
 
@@ -153,7 +153,7 @@
                 Console.WriteLine("Progress: " + progress);
 
                 StreamContent stream = new StreamContent(file.Data);
-                var url = $"https://gearimages.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
+                var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
                 var r = await httpClient.PutAsync(url, stream);
 
                 if (r.IsSuccessStatusCode)
@@ -165,7 +165,7 @@
             var requestJson = JsonSerializer.Serialize(model);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
 
-            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://gearlistcloudapp.azurewebsites.net/api/AddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==")
+            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://https://gearlistfuncs.azurewebsites.net/apiAddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==")
             {
                 Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json")
             });
