@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider AuthenticationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject GearlistFront.Model.AppData AppData
 
 @attribute [Authorize]
 <h3>My Gear</h3>
@@ -12,38 +13,37 @@
 
 @if (@gear == null)
 {
-    <p><em>Loading gear...</em></p>
+<p><em>Loading gear...</em></p>
 }
 else
 {
 
-    <RadzenDataList WrapItems="false" AllowPaging="false" Data="@gear" TItem="GearModel">
-        <Template Context="item">
-            <RadzenCard Style="width: 300px;">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div>Type:</div>
-                        <b>@item.Type</b>
-                        <div style="margin-top:20px">Manufacturer:</div>
-                        <b>@item.Manufacturer</b>
-                        <br />
-                        <RadzenImage Path="@GenerateImageUrl(item)" Style="width:100px;" />
-                    </div>
-                    <div class="col-md-6">
-                        <div>Model:</div>
-                        <b>@item.Model</b>
-                        <div style="margin-top:20px">Year:</div>
-                        <b>@item.Year</b>
-                        <div style="margin-top:20px">Serial number:</div>
-                        <b>@item.Serial</b>
-                        <div style="margin-top:20px">Notes:</div>
-                        <b>@item.Notes</b>
-                    </div>
+<RadzenDataList WrapItems="true" AllowPaging="true" Data="@gear" TItem="GearModel">
+    <Template Context="item">
+        <RadzenCard Style="width: 300px;" @onclick="@(() => GoTo(item))">
+            <div class="row">
+                <div class="col-md-6">
+                    <div>Type:</div>
+                    <b>@item.Type</b>
+                    <div style="margin-top:20px">Manufacturer:</div>
+                    <b>@item.Manufacturer</b>
+                    <br />
+                    <RadzenImage Path="@GenerateImageUrl(item)" Style="width:100px;" />
                 </div>
-            </RadzenCard>
-        </Template>
-
-    </RadzenDataList>
+                <div class="col-md-6">
+                    <div>Model:</div>
+                    <b>@item.Model</b>
+                    <div style="margin-top:20px">Year:</div>
+                    <b>@item.Year</b>
+                    <div style="margin-top:20px">Serial number:</div>
+                    <b>@item.Serial</b>
+                    <div style="margin-top:20px">Notes:</div>
+                    <b>@item.Notes</b>
+                </div>
+            </div>
+        </RadzenCard>
+    </Template>
+</RadzenDataList>
 }
 
 @code {
@@ -55,6 +55,12 @@ else
     public void NewGear()
     {
         Navigation.NavigateTo("/newgear");
+    }
+
+    private void GoTo(GearModel item) {
+        AppData.Model = item;
+        Navigation.NavigateTo("/gear");
+
     }
 
     public string GenerateImageUrl(GearModel model)
@@ -86,7 +92,7 @@ else
                     {
                         if (claim.Type == "sub") sub = claim.Value;
                     }
-                } 
+                }
                 else
                 {
                     Console.WriteLine("Token is null");

@@ -1,0 +1,75 @@
+﻿@page "/gear"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager Navigation
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject GearlistFront.Model.AppData AppData
+
+@attribute [Authorize]
+<h3>Details</h3>
+
+@if (@gear == null)
+{
+<p><em>Loading gear...</em></p>
+}
+else
+{
+
+
+<RadzenCard Style="width: 600px;">
+    <div class="row">
+        <div class="col-md-6">
+            <div>Type:</div>
+            <b>@gear.Type</b>
+            <div style="margin-top:20px">Manufacturer:</div>
+            <b>@gear.Manufacturer</b>
+            <br />
+        </div>
+        <div class="col-md-6">
+            <div>Model:</div>
+            <b>@gear.Model</b>
+            <div style="margin-top:20px">Year:</div>
+            <b>@gear.Year</b>
+            <div style="margin-top:20px">Serial number:</div>
+            <b>@gear.Serial</b>
+            <div style="margin-top:20px">Notes:</div>
+            <b>@gear.Notes</b>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            @foreach (var image in gear.Images)
+            {
+                <RadzenImage Style="margin-top: 0.5em; width: 100%;" Path="@GenerateImageUrl(gear.GearId, image)" />
+            }
+        </div>
+    </div>
+</RadzenCard>
+}
+
+@code {
+
+    private GearModel gear;
+    string sub = "";
+
+    public string GenerateImageUrl(Guid gearId, string image)
+    {
+        return String.IsNullOrEmpty(image) ? "" :
+            $"https://gearlistweb.blob.core.windows.net/images/{sub}/{gearId.ToString()}/{image}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (gear == null)
+        {
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            foreach (var claim in state.User.Claims)
+            {
+                if (claim.Type == "sub") sub = claim.Value;
+            }
+            gear = AppData.Model;
+        }
+    }
+
+}

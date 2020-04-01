@@ -16,6 +16,7 @@ namespace GearlistFront
             builder.Services.AddBaseAddressHttpClient();
             builder.Services.AddOptions();
             builder.Services.AddAuthorizationCore();
+            builder.Services.AddSingleton<GearlistFront.Model.AppData>();
             builder.Services.AddMsalAuthentication(options =>
             {
                 var authentication = options.ProviderOptions.Authentication;
