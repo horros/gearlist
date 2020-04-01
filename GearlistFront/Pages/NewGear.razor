@@ -103,7 +103,7 @@
 
 
         var numFiles = selectedFiles.Length;
-        progress = 100 / numFiles + 1;
+        progress = 100 / (numFiles + 1);
         Console.WriteLine("Progress: " + progress);
         progbarvisible = true;
         currentTask = "Saving data...";
@@ -116,7 +116,7 @@
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
             var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
-               "https://gearlistfuncs.azurewebsites.net/api/GenerateContainerSAS?code=wPadDcvB4IoY6E6juO8mLnhmBva6RD7UE4hvosGpWsngi5O2ZtlFBQ=="));
+               "https://gearlistfuncs.azurewebsites.net/api/GenerateContainerSAS?code=JjQkfnSRq5dkg72SMURMg9VidW3T8FTHB47bcOkFimaayMVqlr6L4g=="));
 
             var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
 
@@ -149,8 +149,9 @@
             httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
             foreach (var file in selectedFiles)
             {
-                progress = 100 / numFiles - fileIdx;
-                Console.WriteLine("Progress: " + progress);
+                progress = 100 / (numFiles - fileIdx);
+                StateHasChanged();
+                await Task.Delay(1);
 
                 StreamContent stream = new StreamContent(file.Data);
                 var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
@@ -160,12 +161,13 @@
                 {
                     model.Images.Add(file.Name);
                 }
+                fileIdx++;
             }
 
             var requestJson = JsonSerializer.Serialize(model);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
 
-            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://https://gearlistfuncs.azurewebsites.net/apiAddGear?code=BhkvT2SDpUGoS1cYiQa96uty5WIRrpSS9UQu8PizjyaYEcIiw9bOWA==")
+            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://gearlistfuncs.azurewebsites.net/api/AddGear?code=EscvcZ5ovwYAVIOQmRjvQwkH4uhGtjB07GCnadY2RJuFe58zsrsCrw==")
             {
                 Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json")
             });

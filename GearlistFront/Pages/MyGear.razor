@@ -62,7 +62,6 @@ else
         image = model.Images != null && model.Images.FirstOrDefault() != null ?
             $"https://gearlistweb.blob.core.windows.net/images/{sub}/{model.GearId}/{model.Images.First()}" :
             "";
-        Console.WriteLine("Generate image URL: " + image);
         return image;
     }
 
@@ -70,22 +69,32 @@ else
     {
         if (gear == null)
         {
-                var httpClient = new HttpClient();
+            var httpClient = new HttpClient();
 
-                var tokenResult = await AuthenticationService.RequestAccessToken();
-
-                if (tokenResult.TryGetToken(out var token))
+            var tokenResult = await AuthenticationService.RequestAccessToken();
+            if (tokenResult.TryGetToken(out var token))
+            {
+                if (token != null)
                 {
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
-                    gear = await httpClient.GetJsonAsync<IEnumerable<GearModel>>("https://gearlistfuncs.azurewebsites.net/api/ListGear");
+                    gear = await httpClient.GetJsonAsync<IEnumerable<GearModel>>(
+                        "https://gearlistfuncs.azurewebsites.net/api/ListGear"
+                    );
+
+                    var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                    foreach (var claim in state.User.Claims)
+                    {
+                        if (claim.Type == "sub") sub = claim.Value;
+                    }
+                } 
+                else
+                {
+                    Console.WriteLine("Token is null");
                 }
 
-                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                foreach (var claim in state.User.Claims)
-                {
-                    if (claim.Type == "sub") sub = claim.Value;
-                }
             }
+
         }
     }
+
 }

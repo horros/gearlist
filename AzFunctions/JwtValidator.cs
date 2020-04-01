@@ -16,7 +16,7 @@ namespace AzFunctions
 
         static Security()
         {
-            var issuer = "https://mlgearlist.b2clogin.com/mlgearlist.onmicrosoft.com/B2C_1_signup_signin"; 
+            var issuer = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1_signup_signin"; 
 
             var documentRetriever = new HttpDocumentRetriever();
             documentRetriever.RequireHttps = true;
@@ -37,14 +37,14 @@ namespace AzFunctions
             }
 
             var config = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
-            var issuer = "https://mlgearlist.b2clogin.com/mlgearlist.onmicrosoft.com/B2C_1_signup_signin";
+            var issuer = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1_signup_signin";
 
             var validationParameter = new TokenValidationParameters()
             {
                 RequireSignedTokens = true,
                 ValidIssuer = issuer,
                 ValidateIssuer = false,
-                ValidAudience = "1a2c6297-8aca-450f-bd75-605267d0d0b1",
+                ValidAudience = "f497bee3-a7ef-4984-a564-41206d334596",
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
                 IssuerSigningKeys = config.SigningKeys,
