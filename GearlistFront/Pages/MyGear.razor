@@ -5,6 +5,7 @@
 @inject IAccessTokenProvider AuthenticationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject GearlistFront.Model.AppData AppData
+@inject DialogService dialogService
 
 @attribute [Authorize]
 <h3>My Gear</h3>
@@ -84,7 +85,9 @@ else
                 {
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
                     gear = await httpClient.GetJsonAsync<IEnumerable<GearModel>>(
-                        "https://gearlistfuncs.azurewebsites.net/api/ListGear"
+
+                        //"https://gearlistfuncs.azurewebsites.net/api/ListGear"
+                        "http://localhost:7071/api/ListGear"
                     );
 
                     var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();

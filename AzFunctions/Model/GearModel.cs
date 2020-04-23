@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -8,6 +9,10 @@ namespace AzFunctions.Model
 {
     public class GearModel
     {
+        [JsonPropertyName("id")]
+        public Guid? Id { get; set; }
+        [JsonPropertyName("_self")]
+        public string SelfLink { get; set; }
         [JsonPropertyName("GearId")]
         public Guid GearId { get; set; }
         [JsonPropertyName("Type")]

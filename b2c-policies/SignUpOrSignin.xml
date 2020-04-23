@@ -1,7 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <TrustFrameworkPolicy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-  xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06" PolicySchemaVersion="0.3.0.0" TenantId="gearlist.onmicrosoft.com" PolicyId="B2C_1A_TOU_SUSI" PublicPolicyUri="http://gearlist.onmicrosoft.com/B2C_1A_TOU_SUSI">
+  xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06" 
+  PolicySchemaVersion="0.3.0.0" 
+  TenantId="gearlist.onmicrosoft.com" 
+  PolicyId="B2C_1A_TOU_SUSI" 
+  PublicPolicyUri="http://gearlist.onmicrosoft.com/B2C_1A_TOU_SUSI"
+  DeploymentMode="Development"
+  UserJourneyRecorderEndpoint="urn:journeyrecorder:applicationinsights">
 
   <BasePolicy>
     <TenantId>gearlist.onmicrosoft.com</TenantId>
@@ -213,10 +219,6 @@
             <OutputClaim ClaimTypeReferenceId="authenticationSource" />
             <OutputClaim ClaimTypeReferenceId="newUser" />
 
-            <!-- Optional claims, to be collected from the user -->
-            <OutputClaim ClaimTypeReferenceId="displayName" />
-            <OutputClaim ClaimTypeReferenceId="givenName" />
-            <OutputClaim ClaimTypeReferenceId="surName" />
             <OutputClaim ClaimTypeReferenceId="extension_termsOfUseConsentChoice" Required="true" />
           </OutputClaims>
           <ValidationTechnicalProfiles>
@@ -300,13 +302,14 @@
 
   <RelyingParty>
     <DefaultUserJourney ReferenceId="B2CSignUpOrSignInWithPasswordToU" />
+    <UserJourneyBehaviors>
+      <JourneyInsights TelemetryEngine="ApplicationInsights" InstrumentationKey="39e6967f-3eac-4de3-b655-50a765154235" DeveloperMode="true" ClientEnabled="false" ServerEnabled="true" TelemetryVersion="1.0.0" />
+    </UserJourneyBehaviors>
+    
     <TechnicalProfile Id="PolicyProfile">
       <DisplayName>PolicyProfile</DisplayName>
       <Protocol Name="OpenIdConnect" />
       <OutputClaims>
-        <OutputClaim ClaimTypeReferenceId="givenName" />
-        <OutputClaim ClaimTypeReferenceId="surName" />
-        <OutputClaim ClaimTypeReferenceId="displayName" />                
         <OutputClaim ClaimTypeReferenceId="newUser" />
         <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub" />
         <OutputClaim ClaimTypeReferenceId="extension_termsOfUseConsentDateTime" />

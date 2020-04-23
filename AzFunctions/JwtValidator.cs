@@ -16,7 +16,7 @@ namespace AzFunctions
 
         static Security()
         {
-            var issuer = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1_signup_signin"; 
+            var issuer = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1A_signup_signin"; 
 
             var documentRetriever = new HttpDocumentRetriever();
             documentRetriever.RequireHttps = true;
@@ -37,7 +37,7 @@ namespace AzFunctions
             }
 
             var config = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
-            var issuer = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1_signup_signin";
+            var issuer = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1A_signup_signin";
 
             var validationParameter = new TokenValidationParameters()
             {

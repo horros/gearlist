@@ -100,9 +100,11 @@
     private async void HandleValidSubmit()
     {
 
-
-
-        var numFiles = selectedFiles.Length;
+        var numFiles = 0;
+        if (selectedFiles != null)
+        {
+            numFiles = selectedFiles.Length;
+        }
         progress = 100 / (numFiles + 1);
         Console.WriteLine("Progress: " + progress);
         progbarvisible = true;
@@ -133,36 +135,41 @@
                 throw new Exception("Could not get subject from claims");
             }
 
-            var uploadUrl = data.Uri;
-
-            var guid = Guid.NewGuid();
-
-            model.GearId = guid;
-
-            currentTask = "Uploading images...";
-            string nnow = DateTime.UtcNow.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
-
-            var fileIdx = 0;
-            httpClient.DefaultRequestHeaders.Clear();
-            httpClient.DefaultRequestHeaders.Add("x-ms-date", nnow);
-            httpClient.DefaultRequestHeaders.Add("x-ms-version", "2017-07-29");
-            httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
-            foreach (var file in selectedFiles)
+            if (numFiles > 0)
             {
-                progress = 100 / (numFiles - fileIdx);
-                StateHasChanged();
-                await Task.Delay(1);
+                var uploadUrl = data.Uri;
 
-                StreamContent stream = new StreamContent(file.Data);
-                var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
-                var r = await httpClient.PutAsync(url, stream);
+                var guid = Guid.NewGuid();
 
-                if (r.IsSuccessStatusCode)
+                model.GearId = guid;
+
+                currentTask = "Uploading images...";
+                string nnow = DateTime.UtcNow.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+                var fileIdx = 0;
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("x-ms-date", nnow);
+                httpClient.DefaultRequestHeaders.Add("x-ms-version", "2017-07-29");
+                httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
+                foreach (var file in selectedFiles)
                 {
-                    model.Images.Add(file.Name);
+                    progress = 100 / (numFiles - fileIdx);
+                    StateHasChanged();
+                    await Task.Delay(1);
+
+                    StreamContent stream = new StreamContent(file.Data);
+                    var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + guid.ToString() + "/" + file.Name + data.Token;
+                    var r = await httpClient.PutAsync(url, stream);
+
+                    if (r.IsSuccessStatusCode)
+                    {
+                        model.Images.Add(file.Name);
+                    }
+                    fileIdx++;
                 }
-                fileIdx++;
+
             }
+
 
             var requestJson = JsonSerializer.Serialize(model);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
