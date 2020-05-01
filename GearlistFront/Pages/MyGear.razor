@@ -84,10 +84,10 @@ else
                 if (token != null)
                 {
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
-                    gear = await httpClient.GetJsonAsync<IEnumerable<GearModel>>(
+                    gear = await httpClient.GetFromJsonAsync<IEnumerable<GearModel>>(
 
-                        //"https://gearlistfuncs.azurewebsites.net/api/ListGear"
-                        "http://localhost:7071/api/ListGear"
+                        "https://gearlistfuncs.azurewebsites.net/api/ListGear"
+                        //"http://localhost:7071/api/ListGear"
                     );
 
                     var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();

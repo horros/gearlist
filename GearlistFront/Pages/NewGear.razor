@@ -69,26 +69,26 @@
 @currentTask
 @code {
 
-    double progress = 0;
-    bool progbarvisible = false;
-    string currentTask = "";
+        double progress = 0;
+        bool progbarvisible = false;
+        string currentTask = "";
 
-    IFileListEntry[] selectedFiles;
+        IFileListEntry[] selectedFiles;
 
-    Dictionary<string, object> inputParams { get; set; } =
-        new Dictionary<string, object>()
-        {
+        Dictionary<string, object> inputParams { get; set; } =
+            new Dictionary<string, object>()
+            {
             {"accept", "image/jpg,image/jpeg,image/png" },
             {"multiple", "multiple" }
-        };
+            };
 
 
-    GearModel model = null;
+        GearModel model = null;
 
-    void HandleSelection(IFileListEntry[] files)
-    {
-        selectedFiles = files;
-    }
+        void HandleSelection(IFileListEntry[] files)
+        {
+            selectedFiles = files;
+        }
 
     protected override void OnInitialized()
     {
@@ -118,7 +118,9 @@
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
             var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
-               "https://gearlistfuncs.azurewebsites.net/api/GenerateContainerSAS?code=JjQkfnSRq5dkg72SMURMg9VidW3T8FTHB47bcOkFimaayMVqlr6L4g=="));
+               //"https://gearlistfuncs.azurewebsites.net/api/GenerateContainerSAS?code=JjQkfnSRq5dkg72SMURMg9VidW3T8FTHB47bcOkFimaayMVqlr6L4g=="
+               "http://localhost:7071/api/GenerateContainerSAS"
+               ));
 
             var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
 
@@ -171,17 +173,16 @@
             }
 
 
-            var requestJson = JsonSerializer.Serialize(model);
+            //var requestJson = JsonSerializer.Serialize(model);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
 
-            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, "https://gearlistfuncs.azurewebsites.net/api/AddGear?code=EscvcZ5ovwYAVIOQmRjvQwkH4uhGtjB07GCnadY2RJuFe58zsrsCrw==")
-            {
-                Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json")
-            });
+          
+            var response = await httpClient.PostAsJsonAsync(
+                "https://gearlistfuncs.azurewebsites.net/api/AddGear?code=EscvcZ5ovwYAVIOQmRjvQwkH4uhGtjB07GCnadY2RJuFe58zsrsCrw==", 
+                //"http://localhost:7071/api/AddGear",                
+                model);
 
             response.EnsureSuccessStatusCode();
-
-
 
             NavigationManager.NavigateTo("/mygear");
         }

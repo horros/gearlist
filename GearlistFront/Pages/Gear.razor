@@ -101,8 +101,9 @@ else
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
             var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Delete,
-                $"https://gearlistfuncs.azurewebsites.net/api/DeleteItem?code=B8KbJTAZT9JoVS7R6u7//OVHYyhR1v2aTTKiXaGVymFYBkfU3BOaPg==&id={gear.Id}"));
-                //$"http://localhost:7071/api/DeleteItem&id={gear.Id}"));
+                $"https://gearlistfuncs.azurewebsites.net/api/DeleteItem?code=B8KbJTAZT9JoVS7R6u7//OVHYyhR1v2aTTKiXaGVymFYBkfU3BOaPg==&id={gear.Id}"
+                //$"http://localhost:7071/api/DeleteItem?id={gear.Id}"
+            ));
             if (response.IsSuccessStatusCode)
             {
                 Navigation.NavigateTo("/mygear");

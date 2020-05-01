@@ -11,8 +11,6 @@ namespace AzFunctions.Model
     {
         [JsonPropertyName("id")]
         public Guid? Id { get; set; }
-        [JsonPropertyName("_self")]
-        public string SelfLink { get; set; }
         [JsonPropertyName("GearId")]
         public Guid GearId { get; set; }
         [JsonPropertyName("Type")]

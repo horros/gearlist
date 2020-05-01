@@ -13,7 +13,6 @@ namespace GearlistFront
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
-            builder.Services.AddBaseAddressHttpClient();
             builder.Services.AddOptions();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddSingleton<GearlistFront.Model.AppData>();
@@ -21,7 +20,7 @@ namespace GearlistFront
             builder.Services.AddMsalAuthentication(options =>
             {
                 var authentication = options.ProviderOptions.Authentication;
-                authentication.Authority = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1A_TOU_SUSI";
+                authentication.Authority = "https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/B2C_1_signup_signin";
                 authentication.ClientId = "f497bee3-a7ef-4984-a564-41206d334596";
                 authentication.ValidateAuthority = false;
                 options.ProviderOptions.DefaultAccessTokenScopes.Add(

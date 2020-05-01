@@ -10,6 +10,8 @@ using Newtonsoft.Json;
 using System.Security.Claims;
 using AzFunctions.Model;
 using Microsoft.Azure.WebJobs.Extensions.CosmosDB;
+using System.Net.Http;
+using System.Net;
 
 namespace AzFunctions
 {
@@ -17,7 +19,7 @@ namespace AzFunctions
     {
 
         [FunctionName("AddGear")]
-        public static async Task<IActionResult> Run(
+        public static async Task<HttpResponseMessage> Run(
             [HttpTrigger("post", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "gear",
@@ -32,14 +34,14 @@ namespace AzFunctions
 
             if (String.IsNullOrEmpty(token))
             {
-                return new UnauthorizedResult();
+                return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
 
             var auth = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             
             if ((principal = await Security.ValidateTokenAsync(auth)) == null)
             {
-                return new UnauthorizedResult();
+                return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
             string sub = null;
             foreach (var claim in principal.Claims)
@@ -47,12 +49,13 @@ namespace AzFunctions
                 if (claim.Type == "sub")
                 {
                     sub = claim.Value;
+                    break;
                 }
             }
 
             if (sub == null)
             {
-                return new UnauthorizedResult();
+                return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -62,7 +65,7 @@ namespace AzFunctions
 
             await gear.AddAsync(input);
 
-            return new OkResult();
+            return new HttpResponseMessage(statusCode: HttpStatusCode.NoContent);
         }
 
     }

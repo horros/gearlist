@@ -32,7 +32,7 @@ namespace AzFunctions
         /// <param name="log">The Logger</param>
         /// <returns></returns>
         [FunctionName("ListGear")]
-        public static async Task<IActionResult> Run(
+        public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "gear",
@@ -53,7 +53,8 @@ namespace AzFunctions
 
             if ((principal = await Security.ValidateTokenAsync(auth)) == null)
             {
-                return new UnauthorizedResult();
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
+                
             }
             // Get the sub (subject) claim from the principal, 
             // this is an AAD B2C GUID that identifies the user
@@ -68,13 +69,13 @@ namespace AzFunctions
 
             if (sub == null)
             {
-                return new UnauthorizedResult();
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
             
             Uri gearCollectionUri = UriFactory.CreateDocumentCollectionUri("gear", "gear");
             var options = new FeedOptions { EnableCrossPartitionQuery = true };
             IEnumerable<GearModel> gearmodels = documentClient.CreateDocumentQuery<GearModel>(gearCollectionUri, options)
-                                                .Where(g => g.Owner == sub).AsEnumerable<GearModel>();
+                                                .Where(g => g.Owner == sub).AsEnumerable();
 
             // Force the JSON serializer to not change PascalCase names
             // to camelCase just to make it easier with the frontend
@@ -82,8 +83,12 @@ namespace AzFunctions
             {
                 PropertyNamingPolicy = null
             };
-           
-            return new OkObjectResult(JsonSerializer.Serialize(gearmodels, jsonOpts));
+
+            var returnValue = JsonSerializer.Serialize(gearmodels, jsonOpts);
+
+            return new HttpResponseMessage(HttpStatusCode.OK) {
+                Content = new StringContent(returnValue, Encoding.UTF8, @"application/json"),               
+            };
 
         }
 
