@@ -13,7 +13,7 @@ namespace AzFunctions
     public static class GenerateContainerSAS
     {
         [FunctionName("GenerateContainerSAS")]
-        public static async Task<IActionResult> Run(
+        public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             [Blob("images", Connection = "IMAGE_STORAGE")] CloudBlobContainer gearimages,
             ILogger log)
