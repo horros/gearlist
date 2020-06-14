@@ -9,7 +9,7 @@ using System.Security.Claims;
 using AzFunctions.Model;
 using System.Net.Http;
 using System.Net;
-
+using Microsoft.Azure.WebJobs.Extensions.Http;
 
 namespace AzFunctions.Functions
 {
@@ -17,7 +17,7 @@ namespace AzFunctions.Functions
     {
         [FunctionName("EditGear")]
         public static async Task<HttpResponseMessage> Run(
-            [HttpTrigger("post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "gear",
                 collectionName: "gear",

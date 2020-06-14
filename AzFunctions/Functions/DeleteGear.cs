@@ -19,7 +19,7 @@ namespace AzFunctions.Functions
     {
         [FunctionName("DeleteGear")]
         public static async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "gear",
                 collectionName: "gear",
