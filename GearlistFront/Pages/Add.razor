@@ -135,7 +135,7 @@
                     model);
 
                 response.EnsureSuccessStatusCode();
-
+                /*
                 await ShowNotification(new NotificationMessage()
                 {
                     Severity = NotificationSeverity.Success,
@@ -144,7 +144,7 @@
                     Duration = 3000
                 });
 
-                await Task.Delay(3000);
+                await Task.Delay(3000);*/
                 NavigationManager.NavigateTo("/list");
             }
             else
