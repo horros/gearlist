@@ -2,13 +2,17 @@
 
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.WebUtilities;
+@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
 
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager Navigation
+@inject IWebAssemblyHostEnvironment HostEnvironment
+
 
 @if (Action != "login-failed")
 {
-<RemoteAuthenticatorView Action="@Action" /> 
+    <RemoteAuthenticatorView Action="@Action" />
+
 }
 else
 {
@@ -24,7 +28,8 @@ else
     $"&nonce={Guid.NewGuid()}" +
     "&state=12345" +
     "&p=B2C_1_pw_reset");
-    } else
+    }
+    else
     {
         Console.WriteLine("Did not forget password, eh.");
     }
@@ -33,7 +38,7 @@ else
 
 @code
 {
-    public string message { get; set; }
+    public string redirect_uri { get; set; }
     [Parameter] public string Action { get; set; }
 
     public bool ForgotPassword()
@@ -43,11 +48,18 @@ else
         Console.WriteLine(uri.Query);
         QueryHelpers.ParseQuery(uri.Query).TryGetValue("message", out var param);
         Console.WriteLine($"Param: {param}");
-        if (!String.IsNullOrEmpty(param)) { 
-            message = param.First();
-            Console.WriteLine(message);
-            return message.StartsWith("AADB2C90118");
-        } 
+        if (!String.IsNullOrEmpty(param))
+        {
+            if (HostEnvironment.IsDevelopment())
+            {
+                redirect_uri = "https%3A%2F%2Flocalhost%3A5000%2Fpasswordreset-callback";
+            } else
+            {
+                redirect_uri = "https%3A%2F%2Fgearlist.cloud%2Fpasswordreset-callback";
+            }
+            return param.First().StartsWith("AADB2C90118");
+
+        }
         else
         {
             return false;
