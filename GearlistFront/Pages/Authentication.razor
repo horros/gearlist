@@ -1,7 +1,56 @@
 ﻿@page "/authentication/{action}"
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-<RemoteAuthenticatorView  Action="@Action" />
 
-@code{
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.WebUtilities;
+
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager Navigation
+
+@if (Action != "login-failed")
+{
+<RemoteAuthenticatorView Action="@Action" /> 
+}
+else
+{
+
+    if (ForgotPassword())
+    {
+        Navigation.NavigateTo("https://gearlist.b2clogin.com/gearlist.onmicrosoft.com/oauth2/v2.0/authorize?" +
+    "client_id=f497bee3-a7ef-4984-a564-41206d334596" +
+    "&redirect_uri=https%3A%2F%2Flocalhost%3A5000%2Fpasswordreset-callback" +
+    "&response_mode=query" +
+    "&response_type=id_token" +
+    "&scope=openid" +
+    $"&nonce={Guid.NewGuid()}" +
+    "&state=12345" +
+    "&p=B2C_1_pw_reset");
+    } else
+    {
+        Console.WriteLine("Did not forget password, eh.");
+    }
+}
+
+
+@code
+{
+    public string message { get; set; }
     [Parameter] public string Action { get; set; }
+
+    public bool ForgotPassword()
+    {
+
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        Console.WriteLine(uri.Query);
+        QueryHelpers.ParseQuery(uri.Query).TryGetValue("message", out var param);
+        Console.WriteLine($"Param: {param}");
+        if (!String.IsNullOrEmpty(param)) { 
+            message = param.First();
+            Console.WriteLine(message);
+            return message.StartsWith("AADB2C90118");
+        } 
+        else
+        {
+            return false;
+        }
+    }
 }

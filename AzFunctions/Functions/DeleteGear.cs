@@ -11,13 +11,13 @@ using System.Linq;
 using System.Net;
 using Microsoft.Azure.Documents;
 using System.Net.Http;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 
 namespace AzFunctions.Functions
 {
-    public static class DeleteItem
+    public static class DeleteGear
     {
-        [FunctionName("DeleteItem")]
+        [FunctionName("DeleteGear")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)] HttpRequest req,
             [CosmosDB(
@@ -62,16 +62,19 @@ namespace AzFunctions.Functions
 
             var options = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(sub) };
 
+            // Fetch the item from CosmosDB
             Uri collUri = UriFactory.CreateDocumentCollectionUri("gear", "gear");
             Document doc = documentClient.CreateDocumentQuery(collUri, options).
                                            Where(d => d.Id == item).
                                            AsEnumerable().
                                            Single();
 
+            // Owner matches the JWT subject
             if (doc != null && doc.GetPropertyValue<string>("Owner") == sub) {
 
                 string gearid = doc.GetPropertyValue<string>("GearId");
 
+                // Find all images attached to this gear and delete them
                 var ctoken = new BlobContinuationToken();
                 do
                 {

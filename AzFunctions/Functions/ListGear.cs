@@ -1,17 +1,14 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using AzFunctions.Model;
-using Microsoft.Azure.WebJobs.Extensions.CosmosDB;
 using System.Collections.Generic;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;

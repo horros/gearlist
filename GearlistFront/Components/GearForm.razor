@@ -1,0 +1,110 @@
+﻿@inject GearlistFront.Model.AppData AppData
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <RadzenProgressBar @bind-Value="Progress" Visible="ProgBarVisible" />
+
+    <table class="table">
+        <tr>
+            <td>Type</td>
+            <td><RadzenTextBox Placeholder="Eg. guitar, bass, keyboard..." @bind-Value="model.Type" /></td>
+        </tr>
+        <tr>
+            <td>Manufacturer</td>
+            <td><RadzenTextBox Placeholder="Eg. Martin, Sigma, Roland..." @bind-Value="model.Manufacturer" /></td>
+        </tr>
+        <tr>
+            <td>Model</td>
+            <td><RadzenTextBox Placeholder="Eg. M-36, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
+        </tr>
+        <tr>
+            <td>Serial number</td>
+            <td><RadzenTextBox @bind-Value="model.Serial" /></td>
+        </tr>
+        <tr>
+            <td>Year</td>
+            <td><RadzenTextBox @bind-Value="model.Year" /></td>
+        </tr>
+        <tr>
+            <td>Purchase date</td>
+            <td><RadzenDatePicker DateFormat="dd.MM.yyyy" @bind-Value="model.PurchaseDate" /></td>
+        </tr>
+        <tr>
+            <td>Notes</td>
+            <td><RadzenTextBox @bind-Value="model.Notes"></RadzenTextBox></td>
+        </tr>
+        <tr>
+            <td>Images</td>
+            <td>
+                <InputFile OnChange="FileChanged" UnmatchedParameters="InputParams" />
+
+                @if (SelectedFiles != null)
+                {
+                    foreach (var file in SelectedFiles)
+                    {
+                        <RadzenCard>
+                            @file.Name (@file.Size)
+                        </RadzenCard>                   
+                    }
+                }
+
+            </td>
+        </tr>
+
+
+    </table>
+    <RadzenButton ButtonType="ButtonType.Submit" Text="Save"></RadzenButton>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    [Parameter]
+    public string Sub { get; set; }
+
+    [Parameter]
+    public double Progress { get; set; }
+
+    [Parameter]
+    public bool ProgBarVisible { get; set; }
+
+    [Parameter]
+    public IFileListEntry[] SelectedFiles { get; set; }
+
+    [Parameter]
+    public Action<IFileListEntry[]> SelectedFilesChanged { get; set; }
+
+    Dictionary<string, object> InputParams { get; set; } =
+    new Dictionary<string, object>()
+    {
+        {"accept", "image/jpg,image/jpeg,image/png" },
+        {"multiple", "multiple" }
+    };
+
+    public void FileChanged(IFileListEntry[] files)
+    {
+        SelectedFiles = files;
+        SelectedFilesChanged?.Invoke(files);
+    }
+
+    private GearModel model;
+
+
+    public string GenerateImageUrl(Guid gearId, string image)
+    {
+        return String.IsNullOrEmpty(image) ? "" :
+            $"https://gearlistweb.blob.core.windows.net/images/{Sub}/{gearId.ToString()}/{image}";
+    }
+
+
+    protected override void OnInitialized()
+    {
+        if (model == null)
+        {
+            model = AppData.Model;
+        }
+    }
+}

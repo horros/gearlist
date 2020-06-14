@@ -1,0 +1,160 @@
+﻿@page "/edit"
+
+@using GearlistFront.Model
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration
+
+@inject NavigationManager NavigationManager
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject GearlistFront.Model.AppData AppData
+@inject NotificationService NotificationService
+@inject IConfiguration Configuration
+
+@attribute [Authorize]
+<AuthorizeView>
+    <h3>New Gear</h3>
+
+    <GearlistFront.Components.GearForm Progress="Progress"
+                                        ProgBarVisible="ProgBarVisible"
+                                        OnValidSubmit="@HandleValidSubmit"
+                                        SelectedFiles="@SelectedFiles"
+                                        SelectedFilesChanged="@SelectedFilesChanged"
+                                        Sub="Sub" />
+
+    @code {
+
+        double Progress = 0;
+        bool ProgBarVisible = false;
+        string Sub = "";
+
+
+        public IFileListEntry[] SelectedFiles;
+
+        GearModel model = null;
+
+        public void SelectedFilesChanged(IFileListEntry[] SelectedFiles)
+        {
+            this.SelectedFiles = SelectedFiles;
+        }
+
+
+        protected override async Task OnInitializedAsync()
+        {
+            model = AppData.Model;
+            Progress = 10;
+            var tokenResult = await AuthenticationService.RequestAccessToken();
+            if (tokenResult.TryGetToken(out var token))
+            {
+                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                foreach (var claim in state.User.Claims)
+                {
+                    if (claim.Type == "sub") Sub = claim.Value;
+                }
+            }
+        }
+        private async void HandleValidSubmit()
+        {
+
+            var numFiles = 0;
+            if (SelectedFiles != null)
+            {
+                numFiles = SelectedFiles.Length;
+            }
+            Progress = 100 / (numFiles + 1);
+            Console.WriteLine("Progress: " + Progress);
+            ProgBarVisible = true;
+
+            var httpClient = new HttpClient();
+            var tokenResult = await AuthenticationService.RequestAccessToken();
+
+            if (tokenResult.TryGetToken(out var token))
+            {
+
+                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var sub = "";
+                foreach (var claim in state.User.Claims)
+                {
+                    if (claim.Type == "sub") sub = claim.Value;
+                }
+                if (String.IsNullOrEmpty(sub))
+                {
+                    throw new Exception("Could not get subject from claims");
+                }
+
+                if (numFiles > 0)
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+                    var sastokenresponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
+                        $"{Configuration["BaseURL"]}/api/GenerateContainerSAS"
+                        ));
+
+                    var sastokenstring = await sastokenresponse.Content.ReadAsStringAsync();
+
+                    SASToken data = JsonSerializer.Deserialize<SASToken>(sastokenstring);
+
+                    var uploadUrl = data.Uri;
+
+                    string nnow = DateTime.UtcNow.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+                    var fileIdx = 0;
+                    httpClient.DefaultRequestHeaders.Clear();
+                    httpClient.DefaultRequestHeaders.Add("x-ms-date", nnow);
+                    httpClient.DefaultRequestHeaders.Add("x-ms-version", "2017-07-29");
+                    httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
+                    foreach (var file in SelectedFiles)
+                    {
+                        Progress = 100 / (numFiles - fileIdx);
+                        StateHasChanged();
+                        await Task.Delay(1);
+
+                        StreamContent stream = new StreamContent(file.Data);
+                        var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + model.GearId.ToString() + "/" + file.Name + data.Token;
+                        var r = await httpClient.PutAsync(url, stream);
+
+                        if (r.IsSuccessStatusCode)
+                        {
+                            model.Images.Add(file.Name);
+                        }
+                        fileIdx++;
+                    }
+
+                }
+
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+
+
+                var response = await httpClient.PostAsJsonAsync(
+                    @Configuration["BaseURL"] + "/api/EditGear",
+                    model);
+
+
+                response.EnsureSuccessStatusCode();
+
+                await ShowNotification(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Gear edited",
+                    Detail = "Gear successfully edited",
+                    Duration = 3000
+                });
+                await Task.Delay(3000);
+                NavigationManager.NavigateTo("/list");
+            }
+            else
+            {
+                throw new Exception("Could not get token");
+            }
+
+        }
+
+
+        async Task ShowNotification(NotificationMessage message)
+        {
+            NotificationService.Notify(message);
+
+            await InvokeAsync(() => { StateHasChanged(); });
+        }
+    }
+</AuthorizeView>

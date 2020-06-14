@@ -10,7 +10,7 @@ namespace GearlistFront.Model
     public class GearModel
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public Guid? Id { get; set; }
         [JsonPropertyName("GearId")]
         public Guid GearId { get; set; }
         [JsonPropertyName("Type")]

@@ -10,12 +10,12 @@ using AzFunctions.Model;
 using System.Net.Http;
 using System.Net;
 
-namespace AzFunctions
-{
-    public static class AddGear
-    {
 
-        [FunctionName("AddGear")]
+namespace AzFunctions.Functions
+{
+    public static class EditGear
+    {
+        [FunctionName("EditGear")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger("post", Route = null)] HttpRequest req,
             [CosmosDB(
@@ -24,7 +24,6 @@ namespace AzFunctions
                 ConnectionStringSetting = "COSMOSDB_CONNECTION_STRING")] IAsyncCollector<object> gear,
             ILogger log)
         {
- 
             ClaimsPrincipal principal;
             var hdr = req.Headers["Authorization"];
             var token = hdr.ToString().Replace("Bearer ", "");
@@ -35,7 +34,7 @@ namespace AzFunctions
             }
 
             var auth = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            
+
             if ((principal = await Security.ValidateTokenAsync(auth)) == null)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
@@ -57,13 +56,19 @@ namespace AzFunctions
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
+            // This needs to be a dynamic object, because apparently IAsyncCollectior doesn't
+            // deserialize the POCO object as it should, thus using "Id" instead of "id"
+            // causing upserts not to work
             var input = JsonConvert.DeserializeObject<dynamic>(requestBody);
-            input.Owner = sub;
+
+            if (input.Owner != sub)
+            {
+                return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
+            }
 
             await gear.AddAsync(input);
 
             return new HttpResponseMessage(statusCode: HttpStatusCode.NoContent);
         }
-
     }
 }

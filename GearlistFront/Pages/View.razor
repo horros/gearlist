@@ -1,0 +1,160 @@
+﻿@page "/view"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration
+
+@inject NavigationManager Navigation
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject GearlistFront.Model.AppData AppData
+@inject DialogService DialogService
+@inject IConfiguration Configuration
+@inject NotificationService NotificationService
+
+@attribute [Authorize]
+<AuthorizeView>
+    <h3>Details</h3>
+    <RadzenNotification />
+    @if (@gear == null)
+    {
+        <p><em>Loading gear...</em></p> 
+    }
+    else
+    {
+
+    <RadzenCard>
+        <div class="row">
+            <div class="col-md-6">
+                <div>Type:</div>
+                <b>@gear.Type</b>
+                <div style="margin-top:20px">Manufacturer:</div>
+                <b>@gear.Manufacturer</b>
+                <br />
+            </div>
+            <div class="col-md-6">
+                <div>Model:</div>
+                <b>@gear.Model</b>
+                <div style="margin-top:20px">Year:</div>
+                <b>@gear.Year</b>
+                <div style="margin-top:20px">Serial number:</div>
+                <b>@gear.Serial</b>
+                <div style="margin-top:20px">Notes:</div>
+                <b>@gear.Notes</b>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                @foreach (var image in gear.Images)
+                {
+                    <RadzenImage Style="margin-top: 0.5em;" Path="@GenerateImageUrl(gear.GearId, image)" />
+                }
+            </div>
+        </div>
+        <div class="row mt-1">
+            <div class="col-md-6">
+                <RadzenButton Click="@Edit" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="EDIT"></RadzenButton>
+            </div>
+            <div class="col-md-6">
+                <RadzenButton Click="@ShowDeleteDialog" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Text="DELETE"></RadzenButton>
+            </div>
+        </div>
+    </RadzenCard>
+    }
+
+    @code {
+    
+        private GearModel gear;
+        string sub = "";
+
+        public string GenerateImageUrl(Guid gearId, string image)
+        {
+            return String.IsNullOrEmpty(image) ? "" :
+                $"https://gearlistweb.blob.core.windows.net/images/{sub}/{gearId.ToString()}/{image}";
+        }
+
+        protected override async Task OnInitializedAsync()
+        {
+            
+            if (gear == null)
+            {
+                var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+                sub = state.User.Claims
+                    .Where(x => x.Type == "sub")
+                    .Select(x => x.Value)
+                    .FirstOrDefault();
+
+                if (sub == null)
+                {
+                    Navigation.NavigateTo("/list");
+                }
+
+                gear = AppData.Model;
+            }
+            
+        }
+
+        async Task ShowDeleteDialog() => await DialogService.OpenAsync("Delete", ds =>
+@<RadzenCard Style="padding: 20px;">
+    <p Style="margin-bottom: 10px;">Are you sure you want to delete this item?</p>
+    <div class="row">
+        <div class="col-md-12">
+            <RadzenButton Text="Ok" Click="()=> DeleteItem(ds)" Style="margin-bottom: 10px; width: 150px" />
+            <RadzenButton Text="Cancel" Click="()=> ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
+        </div>
+    </div>
+</RadzenCard>);
+
+        void Edit()
+        {
+            Navigation.NavigateTo("/edit");
+        }
+
+        async Task DeleteItem(DialogService ds)
+        {
+            var httpClient = new HttpClient();
+            var tokenResult = await AuthenticationService.RequestAccessToken();
+
+            if (tokenResult.TryGetToken(out var token))
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+                var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Delete,
+                    $"{Configuration["BaseURL"]}/api/DeleteGear?id={gear.Id}"
+                ));
+                if (response.IsSuccessStatusCode)
+                {
+                    await ShowNotification(new NotificationMessage()
+                    {
+                        Severity = NotificationSeverity.Info,
+                        Summary = "Item deleted",
+                        Detail = "Item successfully deleted",
+                        Duration = 3000
+                    });
+
+                    ds.Close();
+                    gear = null;
+                    await Task.Delay(3000);
+                    Navigation.NavigateTo("/list");
+                }
+                else
+                {
+                    await ShowNotification(new NotificationMessage()
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Could not delete item",
+                        Detail = response.ReasonPhrase,
+                        Duration = 3000
+                    });
+
+                }
+            }
+        }
+
+        async Task ShowNotification(NotificationMessage message)
+        {
+            NotificationService.Notify(message);
+
+            await InvokeAsync(() => { StateHasChanged(); });
+        }
+    }
+</AuthorizeView>
