@@ -15,12 +15,12 @@
 <AuthorizeView>
     <h3>New Gear</h3>
 
-    <GearlistFront.Components.GearForm Progress="Progress"
+    <GearlistFront.Components.GearForm Progress="@Progress"
                                         ProgBarVisible="ProgBarVisible"
                                         OnValidSubmit="@HandleValidSubmit"
                                         SelectedFiles="@SelectedFiles"
                                         SelectedFilesChanged="@SelectedFilesChanged"
-                                        Sub="Sub" />
+                                        Sub="@Sub" />
 
     @code {
 
