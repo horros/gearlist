@@ -16,7 +16,8 @@ namespace AzFunctions
             [Blob("images", Connection = "IMAGE_STORAGE")] CloudBlobContainer gearimages,
             ILogger log)
         {
-            var permissions = SharedAccessBlobPermissions.Write;
+            SharedAccessBlobPermissions permissions = SharedAccessBlobPermissions.Write;
+            
 
             var sasToken = ContainerSASToken.GetContainerSasToken(gearimages, permissions);
             return new OkObjectResult(new
