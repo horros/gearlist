@@ -16,12 +16,12 @@
 <AuthorizeView>
     <h3>New Gear</h3>
 
-    <GearlistFront.Components.GearForm Progress="Progress"
-                                        ProgBarVisible="ProgBarVisible"
-                                        OnValidSubmit="@HandleValidSubmit"
-                                        SelectedFiles="@SelectedFiles"
-                                        SelectedFilesChanged="@SelectedFilesChanged"
-                                        Sub="Sub" />
+    <GearlistFront.Components.GearForm Progress="@Progress"
+                                       ProgBarVisible="ProgBarVisible"
+                                       OnValidSubmit="@HandleValidSubmit"
+                                       SelectedFiles="@SelectedFiles"
+                                       SelectedFilesChanged="@SelectedFilesChanged"
+                                       Sub="@Sub" />
 
     @code {
 
@@ -156,5 +156,9 @@
 
             await InvokeAsync(() => { StateHasChanged(); });
         }
+
+        
+
     }
 </AuthorizeView>
+<p></p>

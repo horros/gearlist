@@ -1,4 +1,10 @@
-﻿@inject GearlistFront.Model.AppData AppData
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.Extensions.Configuration
+
+@inject GearlistFront.Model.AppData AppData
+@inject IAccessTokenProvider AuthenticationService
+@inject IConfiguration Configuration
+@inject NotificationService NotificationService
 
 <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator />
@@ -16,7 +22,7 @@
         </tr>
         <tr>
             <td>Model</td>
-            <td><RadzenTextBox Placeholder="Eg. M-36, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
+            <td><RadzenTextBox Placeholder="Eg. D28, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
         </tr>
         <tr>
             <td>Serial number</td>
@@ -45,12 +51,30 @@
                     {
                         <RadzenCard>
                             @file.Name (@file.Size)
-                        </RadzenCard>                   
+                        </RadzenCard>
                     }
                 }
-
             </td>
         </tr>
+        @if (model.Images.Count > 0)
+        {
+            foreach (var image in model.Images)
+            {
+                string localImage = image;
+                Guid id = model.Id.GetValueOrDefault();
+                <tr>
+                    <td></td>
+                    <td>
+                        <div class="img_container">
+                            <RadzenImage Style="margin-top: 0.5em; max-width: 500px;" Path="@GenerateImageUrl(model.GearId, image)" />
+                            <div class="overlay">
+                                <span @onclick="@(() => DeleteImage(id, localImage))" class="oi oi-trash"></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
 
 
     </table>
@@ -78,11 +102,11 @@
     public Action<IFileListEntry[]> SelectedFilesChanged { get; set; }
 
     Dictionary<string, object> InputParams { get; set; } =
-    new Dictionary<string, object>()
-    {
-        {"accept", "image/jpg,image/jpeg,image/png" },
-        {"multiple", "multiple" }
-    };
+        new Dictionary<string, object>()
+        {
+            {"accept", "image/jpg,image/jpeg,image/png" },
+            {"multiple", "multiple" }
+                        };
 
     public void FileChanged(IFileListEntry[] files)
     {
@@ -93,12 +117,11 @@
     private GearModel model;
 
 
-    public string GenerateImageUrl(Guid gearId, string image)
+    public string GenerateImageUrl(Guid? gearId, string image)
     {
         return String.IsNullOrEmpty(image) ? "" :
             $"https://gearlistweb.blob.core.windows.net/images/{Sub}/{gearId.ToString()}/{image}";
     }
-
 
     protected override void OnInitialized()
     {
@@ -107,4 +130,41 @@
             model = AppData.Model;
         }
     }
+
+    private async Task DeleteImage(Guid Id, string Image)
+    {
+        Console.WriteLine("trying to delete " + Image);
+        var httpClient = new HttpClient();
+        var tokenResult = await AuthenticationService.RequestAccessToken();
+
+        if (tokenResult.TryGetToken(out var token))
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Delete,
+                $"{Configuration["BaseURL"]}/api/DeleteImage?id={Id}&image={Image}"
+            ));
+            if (response.IsSuccessStatusCode)
+            {
+                /*
+                await ShowNotification(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Info,
+                    Summary = "Image deleted",
+                    Detail = "Image successfully deleted",
+                    Duration = 3000
+                });*/
+                model.Images.Remove(Image);
+                StateHasChanged();
+            }
+
+        }
+    }
+
+    async Task ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
 }
+<p></p>

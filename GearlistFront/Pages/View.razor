@@ -46,7 +46,9 @@
             <div class="col-md-12">
                 @foreach (var image in gear.Images)
                 {
-                    <RadzenImage Style="margin-top: 0.5em;" Path="@GenerateImageUrl(gear.GearId, image)" />
+                <div style="margin-left: 10%;">
+                    <RadzenImage Style="margin-top: 0.5em; max-width: 500px;" Path="@GenerateImageUrl(gear.GearId, image)" />
+                </div>
                 }
             </div>
         </div>
@@ -158,3 +160,4 @@
         }
     }
 </AuthorizeView>
+<p></p>
