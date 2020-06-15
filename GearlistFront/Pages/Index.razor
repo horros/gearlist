@@ -61,14 +61,18 @@
 
 @code{
 
-    string a { get; set; }
+    string q { get; set; }
     override protected void OnInitialized()
     {
         var uri = navManager.ToAbsoluteUri(navManager.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("p", out var param))
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("p", out var page))
         {
-            Console.WriteLine("Parameter: " + param);
-            navManager.NavigateTo(param.First());
+            if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("q", out var query))
+            {
+                q = "?q=" + query.First();
+            }
+            Console.WriteLine("Parameter: " + page);
+            navManager.NavigateTo(page.First() + q);
         }
     }
 }
