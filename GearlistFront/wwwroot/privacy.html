@@ -23,8 +23,8 @@
             <h3>What data do we collect?</h3>
         </p>
         <p style="padding-left: 2em;">
-            When logging in using a local account, Gearlist stores a technical id (subject), your display name (the name you wish to use
-            in the service) and email address. Your email address is used when you log in.
+            When logging in using a local account, Gearlist stores a technical id (subject) and email address.
+            Your email address is used when you log in.
         </p>
         <p>
             <h3>How do we collect your data?</h3>
@@ -45,8 +45,7 @@
             Your data is only used for logging you in and linking data you actively save into the system to your account.
         </p>
         <p style="padding-left: 2em;">
-            You will receive an email if and when we update our privacy statement, and if you opt-in to receiving notifications
-            when people find your stolen gear (when that feature becomes available).
+            You will receive an email if you opt-in to receiving notifications when people find your stolen gear (when that feature becomes available).
         </p>
 
         <p>
@@ -55,7 +54,10 @@
         <p style="padding-left: 2em;">
             Gearlist does not maintain any infrastructure itself. Your user account related data is stored in Microsoft's
             Azure AD B2C. The data you save is stored in an Azure Cosmos DB database. The API uses Azure Functions. Images
-            you upload are stored in an Azure Blob storage. All of the Microsoft-operated services are located in the West Europe region.
+            you upload are stored in an Azure Blob storage. All of the Microsoft-operated services are located within the
+            West Europe region, except for Cosmos DB whose read/write region is Switzerland North. Switzerland has received
+            an "adequacy decision" from the European Commission which means Switzerland's privacy laws are compatible with
+            GDPR.
         </p>
         <p style="padding-left: 2em;">
             All communication from your browser onwards and between all services is encrypted using TLS encryption.
@@ -107,8 +109,11 @@
         </p>
 
         <p style="padding-left: 2em;">
-            The privacy policy is under contrant review, and was last updated on 2020-03-28. <br />
+            The privacy policy is under contrant review, and was last updated on 2020-06-16. <br />
             Any changes to the privacy policy will be posted on this website.
+        </p>
+        <p>
+            <i>Last update: Clarification about the Cosmos DB region, removing mention of storing your name (as we don't).</i>
         </p>
 
         <p>
