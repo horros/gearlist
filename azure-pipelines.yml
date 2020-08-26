@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   solution: '**/*.sln'
@@ -15,16 +15,12 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: NuGetToolInstaller@1
-
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
     version: '5.x'
     includePreviewVersions: true
-#- task: NuGetCommand@2
-#  inputs:
-#    restoreSolution: '$(solution)'
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
