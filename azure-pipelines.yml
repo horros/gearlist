@@ -22,9 +22,14 @@ steps:
     packageType: 'sdk'
     version: '5.x'
     includePreviewVersions: true
-- task: NuGetCommand@2
+#- task: NuGetCommand@2
+#  inputs:
+#    restoreSolution: '$(solution)'
+- task: DotNetCoreCLI@2
   inputs:
-    restoreSolution: '$(solution)'
+    command: 'restore'
+    projects: '**/*.sln'
+    feedsToUse: 'select'
 
 - task: DotNetCoreCLI@2
   inputs:
