@@ -4,25 +4,25 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Configuration
+@using GearlistFront.Components
 
 @inject NavigationManager NavigationManager
 @inject IAccessTokenProvider AuthenticationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject GearlistFront.Model.AppData AppData
-@inject NotificationService NotificationService
 @inject IConfiguration Configuration
+@inject IMatToaster Toaster
 
 @attribute [Authorize]
 <AuthorizeView>
     <h3>New Gear</h3>
 
-    <GearlistFront.Components.GearForm Progress="@Progress"
-                                       ProgBarVisible="ProgBarVisible"
-                                       OnValidSubmit="@HandleValidSubmit"
-                                       SelectedFiles="@SelectedFiles"
-                                       SelectedFilesChanged="@SelectedFilesChanged"
-                                       Sub="@Sub" />
-
+           <GearForm Progress="@Progress"
+                ProgBarVisible="ProgBarVisible"
+                OnValidSubmit="@HandleValidSubmit"
+                SelectedFiles="@SelectedFiles"
+                SelectedFilesChanged="@SelectedFilesChanged"
+                Sub="@Sub" />
     @code {
 
         double Progress = 0;
@@ -30,11 +30,11 @@
         string Sub = "";
 
 
-        public IFileListEntry[] SelectedFiles;
+        public IMatFileUploadEntry[] SelectedFiles;
 
         GearModel model = null;
 
-        public void SelectedFilesChanged(IFileListEntry[] SelectedFiles)
+        public void SelectedFilesChanged(IMatFileUploadEntry[] SelectedFiles)
         {
             this.SelectedFiles = SelectedFiles;
         }
@@ -109,15 +109,20 @@
                         StateHasChanged();
                         await Task.Delay(1);
 
-                        StreamContent stream = new StreamContent(file.Data);
-                        var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + model.GearId.ToString() + "/" + file.Name + data.Token;
-                        var r = await httpClient.PutAsync(url, stream);
+                        using (var stream = new System.IO.MemoryStream()) {
+                            await file.WriteToStreamAsync(stream);
+                            stream.Seek(0, System.IO.SeekOrigin.Begin);
+                            StreamContent sc = new StreamContent(stream);
+                            var url = $"https://gearlistweb.blob.core.windows.net/images/" + sub + "/" + model.GearId.ToString() + "/" + file.Name + data.Token;
+                            var r = await httpClient.PutAsync(url, sc);
 
-                        if (r.IsSuccessStatusCode)
-                        {
-                            model.Images.Add(file.Name);
+                            if (r.IsSuccessStatusCode)
+                            {
+                                model.Images.Add(file.Name);
+                            }
+                            fileIdx++;
                         }
-                        fileIdx++;
+                        
                     }
 
                 }
@@ -131,15 +136,8 @@
 
 
                 response.EnsureSuccessStatusCode();
-                /*
-                await ShowNotification(new NotificationMessage()
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Gear edited",
-                    Detail = "Gear successfully edited",
-                    Duration = 3000
-                });
-                await Task.Delay(3000);*/
+                Toaster.Add("Item successfully edited", MatToastType.Success, "Item edited", "edit");
+                 await Task.Delay(3500);
                 NavigationManager.NavigateTo("/list");
             }
             else
@@ -149,13 +147,6 @@
 
         }
 
-
-        async Task ShowNotification(NotificationMessage message)
-        {
-            NotificationService.Notify(message);
-
-            await InvokeAsync(() => { StateHasChanged(); });
-        }
 
         
 

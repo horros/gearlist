@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Net.Http;
+using MatBlazor;
 
 namespace GearlistFront
 {
@@ -18,8 +19,7 @@ namespace GearlistFront
             builder.Services.AddOptions();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddSingleton<GearlistFront.Model.AppData>();
-            builder.Services.AddScoped<Radzen.DialogService>();
-            builder.Services.AddScoped<Radzen.NotificationService>();
+
 
             builder.Services.AddMsalAuthentication(options =>
             {
@@ -31,7 +31,17 @@ namespace GearlistFront
                     "https://gearlist.onmicrosoft.com/gearlist/api"
                 );
             });
-           
+
+            builder.Services.AddMatToaster(config =>
+                {
+                    config.Position = MatToastPosition.TopRight;
+                    config.PreventDuplicates = true;
+                    config.NewestOnTop = true;
+                    config.ShowCloseButton = true;
+                    config.MaximumOpacity = 95;
+                    config.VisibleStateDuration = 2500;
+                });
+
             await builder.Build().RunAsync();
         }
     }

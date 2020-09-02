@@ -4,54 +4,45 @@
 @inject GearlistFront.Model.AppData AppData
 @inject IAccessTokenProvider AuthenticationService
 @inject IConfiguration Configuration
-@inject NotificationService NotificationService
 
-<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+    
+
+    <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
-    <RadzenProgressBar @bind-Value="Progress" Visible="ProgBarVisible" />
+    <MatProgressBar Progress="Progress" Closed="ProgBarVisible" />
 
     <table class="table">
         <tr>
-            <td>Type</td>
-            <td><RadzenTextBox Placeholder="Eg. guitar, bass, keyboard..." @bind-Value="model.Type" /></td>
+            <td><MatTextField Label="Type" PlaceHolder="Eg. guitar, bass, keyboard..." @bind-Value="model.Type" /></td>
         </tr>
         <tr>
-            <td>Manufacturer</td>
-            <td><RadzenTextBox Placeholder="Eg. Martin, Sigma, Roland..." @bind-Value="model.Manufacturer" /></td>
+            <td><MatTextField Label="Manufacturer" Placeholder="Eg. Martin, Sigma, Roland..." @bind-Value="model.Manufacturer" /></td>
         </tr>
         <tr>
-            <td>Model</td>
-            <td><RadzenTextBox Placeholder="Eg. D28, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
+            <td><MatTextField Label="Model" Placeholder="Eg. D28, 000M-15+, TR-808..." @bind-Value="model.Model" /></td>
         </tr>
         <tr>
-            <td>Serial number</td>
-            <td><RadzenTextBox @bind-Value="model.Serial" /></td>
+            <td><MatTextField Label="Serial number" @bind-Value="model.Serial" /></td>
         </tr>
         <tr>
-            <td>Year</td>
-            <td><RadzenTextBox @bind-Value="model.Year" /></td>
+            <td><MatTextField Label="Year" @bind-Value="model.Year" /></td>
         </tr>
         <tr>
-            <td>Purchase date</td>
-            <td><RadzenDatePicker DateFormat="dd.MM.yyyy" @bind-Value="model.PurchaseDate" /></td>
+            <td><MatDatePicker Required="false" Label="Purchase date" Format="yyyy-MM-dd" @bind-Value="model.PurchaseDate" /></td>
         </tr>
         <tr>
-            <td>Notes</td>
-            <td><RadzenTextBox @bind-Value="model.Notes"></RadzenTextBox></td>
+            <td><MatTextField Label="Notes" TextArea="true" @bind-Value="model.Notes" /></td>
         </tr>
         <tr>
-            <td>Images</td>
             <td>
-                <InputFile OnChange="FileChanged" UnmatchedParameters="InputParams" />
+                <MatFileUpload AllowMultiple="true" OnChange="FileChanged" UnmatchedParameters="InputParams" />
 
                 @if (SelectedFiles != null)
                 {
                     foreach (var file in SelectedFiles)
                     {
-                        <RadzenCard>
-                            @file.Name (@file.Size)
-                        </RadzenCard>
+                        <p>@file.Name (@file.Size)</p>    
                     }
                 }
             </td>
@@ -63,10 +54,9 @@
                 string localImage = image;
                 Guid id = model.Id.GetValueOrDefault();
                 <tr>
-                    <td></td>
                     <td>
-                        <div class="img_container">
-                            <RadzenImage Style="margin-top: 0.5em; max-width: 500px;" Path="@GenerateImageUrl(model.GearId, image)" />
+                        <div style="max-width: 300px;" class="img_container">
+                            <img style="margin-top: 0.5em; max-width: 200px; max-height: 200px;" src="@GenerateImageUrl(model.GearId, image)" />
                             <div class="overlay">
                                 <span @onclick="@(() => DeleteImage(id, localImage))" class="oi oi-trash"></span>
                             </div>
@@ -78,11 +68,11 @@
 
 
     </table>
-    <RadzenButton ButtonType="ButtonType.Submit" Text="Save"></RadzenButton>
-</EditForm>
+    <MatButton Raised="true" Type="submit">Save</MatButton>
+    </EditForm>
+
 
 @code {
-
     [Parameter]
     public EventCallback OnValidSubmit { get; set; }
 
@@ -96,19 +86,19 @@
     public bool ProgBarVisible { get; set; }
 
     [Parameter]
-    public IFileListEntry[] SelectedFiles { get; set; }
+    public IMatFileUploadEntry[] SelectedFiles { get; set; }
 
     [Parameter]
-    public Action<IFileListEntry[]> SelectedFilesChanged { get; set; }
+    public Action<IMatFileUploadEntry[]> SelectedFilesChanged { get; set; }
 
     Dictionary<string, object> InputParams { get; set; } =
         new Dictionary<string, object>()
         {
-            {"accept", "image/jpg,image/jpeg,image/png" },
-            {"multiple", "multiple" }
-                        };
+    {"accept", "image/jpg,image/jpeg,image/png" },
+    {"multiple", "multiple" }
+                };
 
-    public void FileChanged(IFileListEntry[] files)
+    public void FileChanged(IMatFileUploadEntry[] files)
     {
         SelectedFiles = files;
         SelectedFilesChanged?.Invoke(files);
@@ -120,7 +110,7 @@
     public string GenerateImageUrl(Guid? gearId, string image)
     {
         return String.IsNullOrEmpty(image) ? "" :
-            $"https://gearlistweb.blob.core.windows.net/images/{Sub}/{gearId.ToString()}/{image}";
+        $"https://gearlistweb.blob.core.windows.net/images/{Sub}/{gearId.ToString()}/{image}";
     }
 
     protected override void OnInitialized()
@@ -145,14 +135,8 @@
             ));
             if (response.IsSuccessStatusCode)
             {
-                /*
-                await ShowNotification(new NotificationMessage()
-                {
-                    Severity = NotificationSeverity.Info,
-                    Summary = "Image deleted",
-                    Detail = "Image successfully deleted",
-                    Duration = 3000
-                });*/
+
+                // YAY
                 model.Images.Remove(Image);
                 StateHasChanged();
             }
@@ -160,11 +144,7 @@
         }
     }
 
-    async Task ShowNotification(NotificationMessage message)
-    {
-        NotificationService.Notify(message);
 
-        await InvokeAsync(() => { StateHasChanged(); });
-    }
+
 }
 <p></p>

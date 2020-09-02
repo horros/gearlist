@@ -1,17 +1,30 @@
 ﻿@inherits LayoutComponentBase
-@inject DialogService dialogService
 
-<RadzenDialog />
-<div class="sidebar">
-    <NavMenu />
-</div>
+<MatThemeProvider Theme="theme1">
+    
+    <MatToastContainer />
 
-<div class="main">
-    <div class="top-row px-4">
-        <LoginStatus />
+    <div class="sidebar">
+        <NavMenu />
     </div>
 
-    <div class="content px-4">
-        @Body
+    <div class="main">
+        <div class="top-row px-4">
+            <LoginStatus />
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
     </div>
-</div>
+</MatThemeProvider>
+
+@code {
+    MatTheme theme1 = new MatTheme()
+    {
+        Primary = "#3AB2D8",
+        Secondary = "#3AB2D8",
+        Background = "#2A3039",
+        Surface = "#F5F6F8"
+    };
+}
