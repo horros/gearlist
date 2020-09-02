@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Configuration
+@using MatBlazor
 
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider AuthenticationService
@@ -11,45 +12,64 @@
 
 @attribute [Authorize]
 <AuthorizeView>
+           <style>
+            .demo-mat-card {
+                max-width: 400px;
+            }
+ 
+            .demo-mat-card-content {
+                padding: 1rem;
+            }
+ 
+            .demo-mat-card-clean-margin {
+                margin: 0px;
+            }
+        </style>
     <h3>My Gear</h3>
-    <RadzenButton Click="NewGear" Text="Add gear"></RadzenButton>
+    <MatButton Raised="true" OnClick="@NewGear">Add gear</MatButton>
 
     @if (gear == null)
     {
-        <div>Loading...</div> 
+        <div>Loading...</div>
     }
     else
     {
+        if (gear.Count() > 0)
+        {
+            var rows = gear
+                .Select((x, i) => new { x, i })
+                .GroupBy(p => (p.i / 3), p => p.x);
+    
+            <div class="mat-layout-grid mat-layout-grid-align-left" style="max-width: 1400px;">
 
-    <RadzenDataList WrapItems="true" AllowPaging="true" Data="@gear" TItem="GearModel">
-        <Template Context="item">
-            <RadzenCard Style="width: 300px;" @onclick="@(() => GoTo(item))">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div>Type:</div>
-                        <b>@item.Type</b>
-                        <div style="margin-top:20px">Manufacturer:</div>
-                        <b>@item.Manufacturer</b>
-                        <br />
-                        <RadzenImage Path="@GenerateImageUrl(item)" Style="width:100px;" />
+            
+            @foreach(var row in rows)
+            {
+                <div class="mat-layout-grid-inner">
+                @foreach(var item in row)
+                {
+                    
+                    <div class="mat-layout-grid-cell" style="margin-bottom: 2em;" @onclick="@((e) => GoTo(item))">
+                        <MatCard class="demo-mat-card" >
+                            <MatCardContent>
+                                <MatCardMedia Wide="true" ImageUrl="@GenerateImageUrl(item)"></MatCardMedia>
+                            <div class="demo-mat-card-content">
+                                <MatHeadline6 class="demo-mat-card-clean-margin">
+                                    @(item.Manufacturer) @(item.Model)
+                                </MatHeadline6>
+                            </div>
+                            </MatCardContent>
+                        </MatCard>
                     </div>
-                    <div class="col-md-6">
-                        <div>Model:</div>
-                        <b>@item.Model</b>
-                        <div style="margin-top:20px">Year:</div>
-                        <b>@item.Year</b>
-                        <div style="margin-top:20px">Serial number:</div>
-                        <b>@item.Serial</b>
-                        <div style="margin-top:20px">Notes:</div>
-                        <b>@item.Notes</b>
-                    </div>
+                }
                 </div>
-            </RadzenCard>
-        </Template>
-    </RadzenDataList>
+            }
+            </div>
+        }
+
     }
 
-    @code { 
+    @code {
         private IEnumerable<GearModel> gear;
         string sub = "";
         string image = "";
@@ -105,6 +125,6 @@
                 }
 
             }
-        } 
+        }
     }
 </AuthorizeView>

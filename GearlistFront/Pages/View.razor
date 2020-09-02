@@ -2,69 +2,105 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Configuration
-
+@using MatBlazor
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider AuthenticationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject GearlistFront.Model.AppData AppData
-@inject DialogService DialogService
 @inject IConfiguration Configuration
-@inject NotificationService NotificationService
+@inject IMatToaster Toaster
 
 @attribute [Authorize]
 <AuthorizeView>
     <h3>Details</h3>
-    <RadzenNotification />
     @if (@gear == null)
     {
         <p><em>Loading gear...</em></p> 
     }
     else
     {
+        <div class="mat-layout-grid">
+            <div class="mat-layout-grid-inner">
+                <div class="mat-layout-grid-cell">
 
-    <RadzenCard>
-        <div class="row">
-            <div class="col-md-6">
-                <div>Type:</div>
-                <b>@gear.Type</b>
-                <div style="margin-top:20px">Manufacturer:</div>
-                <b>@gear.Manufacturer</b>
-                <br />
-            </div>
-            <div class="col-md-6">
-                <div>Model:</div>
-                <b>@gear.Model</b>
-                <div style="margin-top:20px">Year:</div>
-                <b>@gear.Year</b>
-                <div style="margin-top:20px">Serial number:</div>
-                <b>@gear.Serial</b>
-                <div style="margin-top:20px">Notes:</div>
-                <b>@gear.Notes</b>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                @foreach (var image in gear.Images)
-                {
-                <div style="margin-left: 10%;">
-                    <RadzenImage Style="margin-top: 0.5em; max-width: 500px;" Path="@GenerateImageUrl(gear.GearId, image)" />
+        <MatList TwoLine="true">
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Type</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.Type ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Manufacturer</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.Manufacturer ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Model</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.Model ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Serial number</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.Serial ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Year</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.Year ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Purchase date</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.PurchaseDate.ToString() ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+            <MatListItem>
+                <MatListItemText>
+                    <MatListItemPrimaryText>Notes</MatListItemPrimaryText>
+                    <MatListItemSecondaryText>@(gear.Notes ?? "N/A")</MatListItemSecondaryText>
+                </MatListItemText>
+            </MatListItem>
+        </MatList>
+        <MatButton Raised="true" Icon="edit" OnClick="@(() => Edit())">EDIT</MatButton>
+        <MatButton Raised="true" Icon="delete" OnClick="@(() => { dialogIsOpen = true; })" Style="backgroun-color: #D05A3D">DELETE</MatButton>
+
                 </div>
-                }
+                <div class="mat-layout-grid-cell">
+                    @if (gear.Images.Count > 0) {
+                        <img src="@GenerateImageUrl(gear.GearId, gear.Images[0])" />
+                    }
+                    <div style="width: 100%; max-height: 220px; white-space: nowrap; overflow-y: clip; overflow-x: auto; margin-top: 1em;">
+                        @foreach (var img in gear.Images)
+                        {
+                            <img src="@GenerateImageUrl(gear.GearId, img)" style="max-width: 150px; max-height: 150px; padding-right: 0.5em;"/>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="row mt-1">
-            <div class="col-md-6">
-                <RadzenButton Click="@Edit" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="EDIT"></RadzenButton>
-            </div>
-            <div class="col-md-6">
-                <RadzenButton Click="@ShowDeleteDialog" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Text="DELETE"></RadzenButton>
-            </div>
-        </div>
-    </RadzenCard>
+
+        <MatDialog @bind-IsOpen="@dialogIsOpen">
+            <MatDialogTitle>Delete gear</MatDialogTitle>
+            <MatDialogContent>
+                <p>Are you sure you wish to permanently delete this item?</p>               
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@(e => { dialogIsOpen = false; })">No Thanks</MatButton>
+                <MatButton OnClick="@(() => DeleteItem(gear))">Yes, delete it</MatButton>
+            </MatDialogActions>
+        </MatDialog>
     }
 
     @code {
     
+        bool dialogIsOpen = false;
+
         private GearModel gear;
         string sub = "";
 
@@ -96,23 +132,12 @@
             
         }
 
-        async Task ShowDeleteDialog() => await DialogService.OpenAsync("Delete", ds =>
-@<RadzenCard Style="padding: 20px;">
-    <p Style="margin-bottom: 10px;">Are you sure you want to delete this item?</p>
-    <div class="row">
-        <div class="col-md-12">
-            <RadzenButton Text="Ok" Click="()=> DeleteItem(ds)" Style="margin-bottom: 10px; width: 150px" />
-            <RadzenButton Text="Cancel" Click="()=> ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
-        </div>
-    </div>
-</RadzenCard>);
-
         void Edit()
         {
             Navigation.NavigateTo("/edit");
         }
 
-        async Task DeleteItem(DialogService ds)
+        async Task DeleteItem(GearModel gear)
         {
             var httpClient = new HttpClient();
             var tokenResult = await AuthenticationService.RequestAccessToken();
@@ -125,39 +150,22 @@
                 ));
                 if (response.IsSuccessStatusCode)
                 {
-                    await ShowNotification(new NotificationMessage()
-                    {
-                        Severity = NotificationSeverity.Info,
-                        Summary = "Item deleted",
-                        Detail = "Item successfully deleted",
-                        Duration = 3000
-                    });
-
-                    ds.Close();
+                    dialogIsOpen = false;
+                    this.StateHasChanged();
+                    Toaster.Add("Item successfully deleted", MatToastType.Success, "Item deleted", "delete") ;
                     gear = null;
-                    await Task.Delay(3000);
+                    await Task.Delay(3500);
                     Navigation.NavigateTo("/list");
                 }
                 else
                 {
-                    await ShowNotification(new NotificationMessage()
-                    {
-                        Severity = NotificationSeverity.Error,
-                        Summary = "Could not delete item",
-                        Detail = response.ReasonPhrase,
-                        Duration = 3000
-                    });
-
+                    dialogIsOpen = false;
+                    this.StateHasChanged();
+                    Toaster.Add("Item could not be deleted", MatToastType.Success, "Item not deleted", "delete") ;
                 }
             }
         }
 
-        async Task ShowNotification(NotificationMessage message)
-        {
-            NotificationService.Notify(message);
-
-            await InvokeAsync(() => { StateHasChanged(); });
-        }
+        
     }
 </AuthorizeView>
-<p></p>

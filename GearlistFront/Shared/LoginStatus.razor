@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Authorization
+@using MatBlazor
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider AuthenticationService
 @inject SignOutSessionStateManager SignOutManager
@@ -7,10 +8,10 @@
 <AuthorizeView>
     <Authorized>
         
-        <RadzenButton Click="BeginLogout" Text="Log out"></RadzenButton>
+        <MatButton OnClick="@BeginLogout" Raised="true">Log out</MatButton>
     </Authorized>
     <NotAuthorized>
-        <RadzenButton Click="@GoToLogin" Text="Log in"></RadzenButton>
+        <MatButton OnClick="@GoToLogin" Raised="true">Log in</MatButton>
     </NotAuthorized>
 </AuthorizeView>
 
