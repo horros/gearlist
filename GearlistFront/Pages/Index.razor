@@ -19,7 +19,14 @@
 </Authorized>
     </AuthorizeView>
 </p>
+<p>
+    <strong style="color: #D05A3D;">NOTE FOR GOOGLE USERS:</strong> There seems to be a bug currently in Azure AD B2C
+    (the identity service - ie. the thing that handles your login) that prevents you from properly logging in if you
+    are signed in to multiple Google accounts at the same time (eg. your work Gmail and your YouTube account).
+    The workaround for the moment is to sign out of all but the account you wish to use Gearlist with. <br />
+    For you nerdily inclined, see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/965#issuecomment-580379014">MSAL.js issue #965 on GitHub</a>.
 
+</p>
 <p>
     <strong>THIS SERVICE IS IN PRE-ALPHA STATE, USE AT YOUR OWN RISK</strong>
 </p>
@@ -57,7 +64,6 @@
 </p>
 
 @code{
-
     string q { get; set; }
     override protected void OnInitialized()
     {
