@@ -1,8 +1,19 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+@font-face {
+    font-family: 'IBMPlex';
+    src: url("../fonts/IBMPlexSans-Light.ttf") format('truetype');
+
+}
+
+@font-face {
+    font-family: "Rocksalt";
+    src: url("../fonts/RockSalt-Regular.ttf") format('truetype');
+}
+
 html,
 body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: IBMPlex, Helvetica, Arial, sans-serif;
 }
 
 a,
