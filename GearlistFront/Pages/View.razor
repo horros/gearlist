@@ -2,7 +2,9 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Configuration
+@using GearlistFront.Components 
 @using MatBlazor
+
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider AuthenticationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -57,7 +59,7 @@
             <MatListItem>
                 <MatListItemText>
                     <MatListItemPrimaryText>Purchase date</MatListItemPrimaryText>
-                    <MatListItemSecondaryText>@(gear.PurchaseDate.ToString() ?? "N/A")</MatListItemSecondaryText>
+                    <MatListItemSecondaryText>@(purchaseDate ?? "N/A")</MatListItemSecondaryText>
                 </MatListItemText>
             </MatListItem>
             <MatListItem>
@@ -72,15 +74,16 @@
 
                 </div>
                 <div class="mat-layout-grid-cell">
-                    @if (gear.Images.Count > 0) {
-                        <img style="max-width: 400px;" src="@GenerateImageUrl(gear.GearId, gear.Images[0])" />
+                    @if (gear.Images.Count > 0)
+                    {
+                        <GearImage Src="@currImageUrl" />
+                        <div style="width: 100%; max-height: 220px; white-space: nowrap; overflow-y: hidden; overflow-x: auto; margin-top: 1em;">
+                            @foreach (var img in gear.Images)
+                            {
+                                <img @onclick="@(() => SwitchImage(GenerateImageUrl(gear.GearId, img)))" src="@GenerateImageUrl(gear.GearId, img)" style="max-width: 150px; max-height: 150px; padding-right: 0.5em;" />
+                            }
+                        </div>
                     }
-                    <div style="width: 100%; max-height: 220px; white-space: nowrap; overflow-y: clip; overflow-x: auto; margin-top: 1em;">
-                        @foreach (var img in gear.Images)
-                        {
-                            <img src="@GenerateImageUrl(gear.GearId, img)" style="max-width: 150px; max-height: 150px; padding-right: 0.5em;"/>
-                        }
-                    </div>
                 </div>
             </div>
         </div>
@@ -98,11 +101,19 @@
     }
 
     @code {
-    
+
+        string currImageUrl;
+        string purchaseDate;
         bool dialogIsOpen = false;
 
         private GearModel gear;
         string sub = "";
+
+        public void SwitchImage(string NewImageUrl)
+        {
+            currImageUrl = NewImageUrl;
+            this.StateHasChanged();
+        }
 
         public string GenerateImageUrl(Guid gearId, string image)
         {
@@ -112,7 +123,14 @@
 
         protected override async Task OnInitializedAsync()
         {
-            
+
+            if (AppData.Model == null)
+            {
+                Navigation.NavigateTo("/list");
+                return;
+
+            }
+
             if (gear == null)
             {
                 var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -125,11 +143,20 @@
                 if (sub == null)
                 {
                     Navigation.NavigateTo("/list");
+                    return;
                 }
 
                 gear = AppData.Model;
+                if (AppData.Model.Images.Count > 0)
+                {
+                    currImageUrl = GenerateImageUrl(gear.GearId, gear.Images[0]);
+                }
+                if (gear.PurchaseDate.HasValue)
+                {
+                    purchaseDate = ((DateTime)gear.PurchaseDate).ToString("yyyy-MM-dd");
+                }
             }
-            
+
         }
 
         void Edit()
@@ -156,16 +183,18 @@
                     gear = null;
                     await Task.Delay(3500);
                     Navigation.NavigateTo("/list");
+                    return;
                 }
                 else
                 {
                     dialogIsOpen = false;
                     this.StateHasChanged();
                     Toaster.Add("Item could not be deleted", MatToastType.Success, "Item not deleted", "delete") ;
+                    return;
                 }
             }
         }
 
-        
+
     }
 </AuthorizeView>
