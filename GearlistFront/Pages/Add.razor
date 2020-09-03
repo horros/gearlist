@@ -57,7 +57,6 @@
         }
         private async void HandleValidSubmit()
         {
-
             var numFiles = 0;
             if (SelectedFiles != null)
             {
@@ -127,20 +126,24 @@
                             fileIdx++;
                         }
 
-                       
+
                     }
 
                 }
 
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
 
+                if (model.PurchaseDate?.Year == 1)
+                {
+                    model.PurchaseDate = null;
+                }
 
                 var response = await httpClient.PostAsJsonAsync(
                     Configuration["BaseURL"] + "/api/AddGear",
                     model);
 
                 response.EnsureSuccessStatusCode();
-                
+
                 NavigationManager.NavigateTo("/list");
             }
             else

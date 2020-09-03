@@ -57,6 +57,7 @@
         private async void HandleValidSubmit()
         {
 
+
             var numFiles = 0;
             if (SelectedFiles != null)
             {
@@ -73,11 +74,8 @@
             {
 
                 var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                var sub = "";
-                foreach (var claim in state.User.Claims)
-                {
-                    if (claim.Type == "sub") sub = claim.Value;
-                }
+                var sub = state.User.Claims.Where(c => c.Type == "sub").FirstOrDefault().Value;
+
                 if (String.IsNullOrEmpty(sub))
                 {
                     throw new Exception("Could not get subject from claims");
@@ -122,13 +120,17 @@
                             }
                             fileIdx++;
                         }
-                        
+
                     }
 
                 }
 
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
 
+                if (model.PurchaseDate?.Year == 1)
+                {
+                    model.PurchaseDate = null;
+                }
 
                 var response = await httpClient.PostAsJsonAsync(
                     @Configuration["BaseURL"] + "/api/EditGear",
@@ -137,7 +139,7 @@
 
                 response.EnsureSuccessStatusCode();
                 Toaster.Add("Item successfully edited", MatToastType.Success, "Item edited", "edit");
-                 await Task.Delay(3500);
+                await Task.Delay(3500);
                 NavigationManager.NavigateTo("/list");
             }
             else
@@ -148,7 +150,7 @@
         }
 
 
-        
+
 
     }
 </AuthorizeView>

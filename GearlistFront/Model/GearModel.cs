@@ -24,7 +24,7 @@ namespace GearlistFront.Model
         [JsonPropertyName("Year")]
         public string Year { get; set; }
         [JsonPropertyName("PurchaseDate")]
-        public DateTime PurchaseDate { get; set; }
+        public DateTime? PurchaseDate { get; set; }
         [JsonPropertyName("Notes")]
         public string Notes { get; set; }
         [JsonPropertyName("Owner")]

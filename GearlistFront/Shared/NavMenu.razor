@@ -1,10 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 
 <div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">Gearlist</a>
+    <a class="navbar-brand" href="">Gearlist</a><br />
     <img width="35" height="35" src="images/gearlist-icon.svg" />
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -56,11 +55,14 @@
                 </li>    
             </NotAuthorized>
         </AuthorizeView>
-
+        <AuthorizeView>
+            
+        </AuthorizeView>
     </ul>
 </div>
 
 @code {
+
     private bool collapseNavMenu = true;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;

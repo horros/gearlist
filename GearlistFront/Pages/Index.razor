@@ -6,17 +6,16 @@
 <p>
     <AuthorizeView>
         <NotAuthorized>
-<p>
-    This is an app where musicians can keep a track of their gear. To get started, hit the Log In button.
-</p>
-<p>
-    This site uses WebAssembly, so you need a fairly modern browser.
-</p>
-
+            <p>
+                This is an app where musicians can keep a track of their gear. To get started, hit the Log In button.
+            </p>
+            <p>
+                This site uses WebAssembly, so you need a fairly modern browser.
+            </p>
         </NotAuthorized>
-<Authorized>
-    Welcome. To add gear, click the "My gear" menu item on the left.
-</Authorized>
+        <Authorized>    
+            Welcome. To add gear, click the "My gear" menu item on the left.
+        </Authorized>
     </AuthorizeView>
 </p>
 <p>
@@ -67,6 +66,7 @@
     string q { get; set; }
     override protected void OnInitialized()
     {
+
         var uri = navManager.ToAbsoluteUri(navManager.Uri);
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("p", out var page))
         {
@@ -79,3 +79,4 @@
         }
     }
 }
+
