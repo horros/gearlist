@@ -10,6 +10,7 @@ using AzFunctions.Model;
 using System.Net.Http;
 using System.Net;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using System.Linq;
 
 namespace AzFunctions
 {
@@ -41,17 +42,10 @@ namespace AzFunctions
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
-            string sub = null;
-            foreach (var claim in principal.Claims)
-            {
-                if (claim.Type == "sub")
-                {
-                    sub = claim.Value;
-                    break;
-                }
-            }
 
-            if (sub == null)
+            var subClaim = principal.Claims.Where(c => c.Type == "sub").FirstOrDefault();
+
+            if (subClaim == null)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
@@ -59,7 +53,7 @@ namespace AzFunctions
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             var input = JsonConvert.DeserializeObject<dynamic>(requestBody);
-            input.Owner = sub;
+            input.Owner = subClaim.Value;
 
             await gear.AddAsync(input);
 

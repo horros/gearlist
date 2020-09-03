@@ -55,24 +55,18 @@ namespace AzFunctions
             }
             // Get the sub (subject) claim from the principal, 
             // this is an AAD B2C GUID that identifies the user
-            string sub = null;
-            foreach (var claim in principal.Claims)
+
+            var subClaim = principal.Claims.Where(c => c.Type == "sub").FirstOrDefault();
+
+            if (subClaim == null)
             {
-                if (claim.Type == "sub")
-                {
-                    sub = claim.Value;
-                }
+                return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
 
-            if (sub == null)
-            {
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
-            }
-            
             Uri gearCollectionUri = UriFactory.CreateDocumentCollectionUri("gear", "gear");
             var options = new FeedOptions { EnableCrossPartitionQuery = true };
             IEnumerable<GearModel> gearmodels = documentClient.CreateDocumentQuery<GearModel>(gearCollectionUri, options)
-                                                .Where(g => g.Owner == sub).AsEnumerable();
+                                                .Where(g => g.Owner == subClaim.Value).AsEnumerable();
 
             // Force the JSON serializer to not change PascalCase names
             // to camelCase just to make it easier with the frontend

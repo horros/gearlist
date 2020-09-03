@@ -39,16 +39,9 @@ namespace AzFunctions.Functions
             }
             // Get the sub (subject) claim from the principal, 
             // this is an AAD B2C GUID that identifies the user
-            string sub = null;
-            foreach (var claim in principal.Claims)
-            {
-                if (claim.Type == "sub")
-                {
-                    sub = claim.Value;
-                }
-            }
+            var subClaim = principal.Claims.Where(c => c.Type == "sub").FirstOrDefault();
 
-            if (sub == null)
+            if (subClaim == null)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
@@ -60,7 +53,7 @@ namespace AzFunctions.Functions
                 return new HttpResponseMessage(statusCode: HttpStatusCode.NotFound);
             }
 
-            var options = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(sub) };
+            var options = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(subClaim.Value) };
 
             // Fetch the item from CosmosDB
             Uri collUri = UriFactory.CreateDocumentCollectionUri("gear", "gear");
@@ -70,7 +63,7 @@ namespace AzFunctions.Functions
                                            Single();
 
             // Owner matches the JWT subject
-            if (doc != null && doc.GetPropertyValue<string>("Owner") == sub) {
+            if (doc != null && doc.GetPropertyValue<string>("Owner") == subClaim.Value) {
 
                 string gearid = doc.GetPropertyValue<string>("GearId");
 
@@ -78,7 +71,7 @@ namespace AzFunctions.Functions
                 var ctoken = new BlobContinuationToken();
                 do
                 {
-                    var result = await container.ListBlobsSegmentedAsync($"{sub}/{gearid}", true, BlobListingDetails.None, null, ctoken, null, null);
+                    var result = await container.ListBlobsSegmentedAsync($"{subClaim.Value}/{gearid}", true, BlobListingDetails.None, null, ctoken, null, null);
                     ctoken = result.ContinuationToken;
                     await Task.WhenAll(result.Results
                         .Select(item => (item as CloudBlob)?.DeleteIfExistsAsync())
@@ -89,7 +82,7 @@ namespace AzFunctions.Functions
 
                 // Delete the document itself
                 await documentClient.DeleteDocumentAsync(doc.SelfLink,
-                    new RequestOptions { PartitionKey = new PartitionKey(sub) });
+                    new RequestOptions { PartitionKey = new PartitionKey(subClaim.Value) });
                 return new HttpResponseMessage(statusCode: HttpStatusCode.NoContent);
                 
             } 

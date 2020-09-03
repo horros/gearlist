@@ -10,6 +10,7 @@ using AzFunctions.Model;
 using System.Net.Http;
 using System.Net;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using System.Linq;
 
 namespace AzFunctions.Functions
 {
@@ -39,17 +40,10 @@ namespace AzFunctions.Functions
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
-            string sub = null;
-            foreach (var claim in principal.Claims)
-            {
-                if (claim.Type == "sub")
-                {
-                    sub = claim.Value;
-                    break;
-                }
-            }
 
-            if (sub == null)
+            var subClaim = principal.Claims.Where(c => c.Type == "sub").FirstOrDefault();
+
+            if (subClaim == null)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
@@ -59,9 +53,10 @@ namespace AzFunctions.Functions
             // This needs to be a dynamic object, because apparently IAsyncCollectior doesn't
             // deserialize the POCO object as it should, thus using "Id" instead of "id"
             // causing upserts not to work
+
             var input = JsonConvert.DeserializeObject<dynamic>(requestBody);
 
-            if (input.Owner != sub)
+            if (input.Owner != subClaim.Value)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }

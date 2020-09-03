@@ -40,16 +40,9 @@ namespace AzFunctions.Functions
             }
             // Get the sub (subject) claim from the principal, 
             // this is an AAD B2C GUID that identifies the user
-            string sub = null;
-            foreach (var claim in principal.Claims)
-            {
-                if (claim.Type == "sub")
-                {
-                    sub = claim.Value;
-                }
-            }
+            var subClaim = principal.Claims.Where(c => c.Type == "sub").FirstOrDefault();
 
-            if (sub == null)
+            if (subClaim == null)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.Unauthorized);
             }
@@ -68,7 +61,7 @@ namespace AzFunctions.Functions
                 return new HttpResponseMessage(statusCode: HttpStatusCode.BadRequest);
             }
 
-            var options = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(sub) };
+            var options = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(subClaim.Value) };
 
             // Fetch the item from CosmosDB
             Uri collUri = UriFactory.CreateDocumentCollectionUri("gear", "gear");
@@ -78,12 +71,12 @@ namespace AzFunctions.Functions
                                            Single();
 
             // Owner matches the JWT subject
-            if (doc != null && doc.GetPropertyValue<string>("Owner") == sub) {
+            if (doc != null && doc.GetPropertyValue<string>("Owner") == subClaim.Value) {
 
                 string gearid = doc.GetPropertyValue<string>("GearId");
                 List<string> images = doc.GetPropertyValue<List<string>>("Images");
 
-                var blob = container.GetBlockBlobReference($"{sub}/{gearid}/{image}");
+                var blob = container.GetBlockBlobReference($"{subClaim.Value}/{gearid}/{image}");
                 if (blob != null)
                 {
 
