@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
+    <PackageReference Include="HtmlSanitizer" Version="5.0.343" />
     <PackageReference Include="MatBlazor" Version="2.6.2" />
    
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="5.0.0-preview.8.20414.8" />

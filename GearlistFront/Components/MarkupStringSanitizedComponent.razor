@@ -1,0 +1,12 @@
+﻿@if (Content == null)
+{
+    <span>Loading...</span>
+}
+else
+{
+    @((MarkupString)(MarkupStringSanitized)Content)
+}
+
+@code {
+    [Parameter] public string Content { get; set; }
+}

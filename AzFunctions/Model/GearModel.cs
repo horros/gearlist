@@ -31,5 +31,6 @@ namespace AzFunctions.Model
         public string Owner { get; set; }
         [JsonPropertyName("Images")]
         public List<string> Images { get; set; }
+        public bool Stolen { get; set; }
     }
 }

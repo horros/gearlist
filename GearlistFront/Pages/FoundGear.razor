@@ -1,0 +1,52 @@
+﻿@page "/foundgear"
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration
+@using MatBlazor
+
+@inject NavigationManager Navigation
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject GearlistFront.Model.AppData AppData
+@inject IConfiguration Configuration
+
+<MatH5>Found Gear</MatH5>
+
+<MatH6>Someone has found gear you flagged stolen!</MatH6>
+
+@if (FoundItems != null) { 
+    @foreach (var foundItem in FoundItems)
+    {
+    <MatRipple Class="mat-elevation-z5" Style="padding: 0.5em" @onclick="@(() => GoToItem(Items.Where(i => i.Serial == foundItem.Serial).FirstOrDefault()))">
+        <MatH6>@(Items.Where(i => i.Serial == foundItem.Serial).FirstOrDefault().Manufacturer + " " + Items.Where(i => i.Serial == foundItem.Serial).FirstOrDefault().Model), serial number @(foundItem.Serial)</MatH6>
+        <div><strong>Note from finder (if any):</strong><pre>@((MarkupStringSanitized)foundItem.Message)</pre></div>
+    </MatRipple>
+    }
+}
+
+@code {
+
+    private IEnumerable<StolenItemFound> FoundItems = null;
+    private IEnumerable<GearModel> Items;
+
+    protected void GoToItem(GearModel item)
+    {
+        AppData.Model = item;
+        Navigation.NavigateTo("/view");
+    }
+
+    protected override void OnInitialized()
+    {
+
+        if (AppData.ListOfStolenItemFound == null)
+        {
+            Navigation.NavigateTo("/list");
+        } else
+        {
+            FoundItems = AppData.ListOfStolenItemFound;
+            Items = AppData.ListOfItems;
+        }
+    }
+
+}

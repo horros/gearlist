@@ -1,0 +1,127 @@
+﻿@page "/stolenitemlookup"
+
+@using MatBlazor
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration
+
+@inject IAccessTokenProvider AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject GearlistFront.Model.AppData AppData
+@inject IConfiguration Configuration
+@inject IMatToaster Toaster
+
+
+<h3>Stolen item lookup</h3>
+
+<MatTextField @bind-Value="@Serial" Label="Serial number" /> <MatButton OnClick="SearchStolen" Raised="true">Search</MatButton>
+
+<MatH5>@Msg</MatH5>
+@if (IsStolen == true)
+{
+    <MatButton Raised="true" OnClick="@(() => { DialogIsOpen = true; })">Inform owner</MatButton>
+}
+
+<MatDialog @bind-IsOpen="@DialogIsOpen">
+    <MatDialogTitle>Inform owner</MatDialogTitle>
+    <MatDialogContent>
+        <p>We are informing the owner their gear has been found.</p>
+        <p>
+            You can add a personal note below if you wish, letting the owner
+            know eg. where the item has been found or how to contact you.
+        </p>
+        <p>(If you don't the owner has no way to know where their gear has been found.)</p>
+        <MatTextField FullWidth="true" @bind-Value="@PersonalNote" TextArea="true"></MatTextField>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton Raised="false" OnClick="@(e => { DialogIsOpen = false; })">Cancel</MatButton>
+        <MatButton Raised="true" OnClick="@(() => GearFound(Serial))">OK</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code {
+
+    public StolenItem StolenItem { get; set; }
+
+    public string Serial { get; set; }
+
+
+    public HttpClient httpClient;
+    public string PersonalNote;
+
+    public string Msg;
+    public bool IsStolen;
+    public bool DialogIsOpen = false;
+
+    public async void SearchStolen()
+    {
+
+        StolenItem = null;
+        httpClient = new HttpClient();
+
+        StolenItem result = null;
+
+        try {
+            result = await httpClient.GetFromJsonAsync<StolenItem>(
+                Configuration["BaseURL"] + "/api/StolenItemSearch?serial=" + Serial
+            );
+        } 
+        catch (Exception)
+        {
+            // Swallow until we figure out how to handle 204 no content
+        }
+
+
+        if (result != null)
+        {
+            StolenItem = result;
+            Msg = "This item was marked stolen on " + result.DateStolen.ToString("yyyy-MM-dd") + "!";
+            IsStolen = true;
+            this.StateHasChanged();
+        } else
+        {
+            Msg = "Item not marked stolen";
+            this.StateHasChanged();
+        }
+
+    }
+
+    public async void GearFound(string serial)
+    {
+
+        var tokenResult = await AuthenticationService.RequestAccessToken();
+
+        if (tokenResult.TryGetToken(out var token))
+        {
+            httpClient = new HttpClient();
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+
+        }
+
+        StolenItemFound StolenItemFoundMsg = new StolenItemFound
+        {
+            id = Guid.NewGuid().ToString(),
+            Serial = StolenItem.Serial,
+            Owner = StolenItem.Owner,
+            Message = PersonalNote
+        };
+
+        var result = await httpClient.PostAsJsonAsync<StolenItemFound>(
+                Configuration["BaseURL"] + "/api/FlagStolenItemFound",
+                StolenItemFoundMsg
+            );
+        result.EnsureSuccessStatusCode();
+
+        DialogIsOpen = false;
+        PersonalNote = "";
+        Toaster.Add("Note sent", MatToastType.Success, "Note sent to owner! Thank you!");
+        Serial = "";
+        Msg = "";
+        IsStolen = false;
+        StolenItem = null;
+        this.StateHasChanged();
+    }
+
+}

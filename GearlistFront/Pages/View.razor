@@ -14,7 +14,7 @@
 
 @attribute [Authorize]
 <AuthorizeView>
-    <h3>Details</h3>
+    <MatH3>Details @if (gear != null && gear.Stolen == true) { <MatIcon Style="color: #D05A3D">warning</MatIcon>} </MatH3>
     @if (@gear == null)
     {
         <p><em>Loading gear...</em></p> 
@@ -70,7 +70,7 @@
             </MatListItem>
         </MatList>
         <MatButton Raised="true" Icon="edit" OnClick="@(() => Edit())">EDIT</MatButton>
-        <MatButton Raised="true" Icon="delete" OnClick="@(() => { dialogIsOpen = true; })" Style="backgroun-color: #D05A3D">DELETE</MatButton>
+        <MatButton Raised="true" Icon="delete" OnClick="@(() => { dialogIsOpen = true; })" Style="background-color: #D05A3D">DELETE</MatButton>
 
                 </div>
                 <div class="mat-layout-grid-cell">
@@ -87,6 +87,11 @@
                 </div>
             </div>
         </div>
+
+        @if (gear.Stolen)
+        {
+            <MatH5 Style="color: #D05A3D">You have flagged this item as stolen</MatH5>
+        }
 
         <MatDialog @bind-IsOpen="@dialogIsOpen">
             <MatDialogTitle>Delete gear</MatDialogTitle>

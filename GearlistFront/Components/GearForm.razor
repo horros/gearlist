@@ -5,9 +5,9 @@
 @inject IAccessTokenProvider AuthenticationService
 @inject IConfiguration Configuration
 
-    
 
-    <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
     <MatProgressBar Progress="Progress" Closed="ProgBarVisible" />
@@ -35,6 +35,9 @@
             <td><MatTextField Label="Notes" TextArea="true" @bind-Value="model.Notes" /></td>
         </tr>
         <tr>
+            <td><MatCheckbox @bind-Value="model.Stolen" Label="Flag as stolen" /></td>
+        </tr>
+        <tr>
             <td>
                 <MatFileUpload AllowMultiple="true" OnChange="FileChanged" UnmatchedParameters="InputParams" />
 
@@ -42,7 +45,7 @@
                 {
                     foreach (var file in SelectedFiles)
                     {
-                        <p>@file.Name (@file.Size)</p>    
+                        <p>@file.Name (@file.Size)</p>
                     }
                 }
             </td>
@@ -69,10 +72,12 @@
 
     </table>
     <MatButton Raised="true" Type="submit">Save</MatButton>
-    </EditForm>
 
+
+</EditForm>
 
 @code {
+
     [Parameter]
     public EventCallback OnValidSubmit { get; set; }
 
@@ -94,9 +99,9 @@
     Dictionary<string, object> InputParams { get; set; } =
         new Dictionary<string, object>()
         {
-    {"accept", "image/jpg,image/jpeg,image/png" },
-    {"multiple", "multiple" }
-                };
+            {"accept", "image/jpg,image/jpeg,image/png" },
+            {"multiple", "multiple" }
+            };
 
     public void FileChanged(IMatFileUploadEntry[] files)
     {
@@ -104,8 +109,8 @@
         SelectedFilesChanged?.Invoke(files);
     }
 
-    private GearModel model;
 
+    private GearModel model;
 
     public string GenerateImageUrl(Guid? gearId, string image)
     {
@@ -120,6 +125,7 @@
             model = AppData.Model;
         }
     }
+
 
     private async Task DeleteImage(Guid Id, string Image)
     {

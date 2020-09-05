@@ -25,7 +25,14 @@
                 margin: 0px;
             }
         </style>
-    <h3>My Gear</h3>
+           <MatH5>
+               My Gear @if (AppData.ListOfStolenItemFound?.Count() > 0)
+               {
+                   <MatIcon @onclick="@GoToFoundGear" Class="shakeme" Style="color: #D05A3D">notification_important</MatIcon>
+               }
+           </MatH5>
+            
+
     <MatButton Raised="true" OnClick="@NewGear">Add gear</MatButton>
 
     @if (gear == null)
@@ -71,8 +78,14 @@
 
     @code {
         private IEnumerable<GearModel> gear;
+
         string sub = "";
         string image = "";
+
+        public void GoToFoundGear()
+        {
+            Navigation.NavigateTo("/foundgear");   
+        }
 
         public void NewGear()
         {
@@ -108,6 +121,13 @@
                         gear = await httpClient.GetFromJsonAsync<IEnumerable<GearModel>>(
                             Configuration["BaseURL"] + "/api/ListGear"
                         );
+                        
+                        AppData.ListOfItems = gear;
+
+                        AppData.ListOfStolenItemFound = await httpClient.GetFromJsonAsync<IEnumerable<StolenItemFound>>(
+                            Configuration["BaseURL"] + "/api/FoundStolenItems"
+                        );
+
                         await InvokeAsync(() => { StateHasChanged(); });
 
 

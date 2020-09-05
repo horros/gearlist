@@ -15,20 +15,40 @@
 
 @attribute [Authorize]
 <AuthorizeView>
-    <h3>New Gear</h3>
+    <h3>Edit Gear</h3>
 
-           <GearForm Progress="@Progress"
-                ProgBarVisible="ProgBarVisible"
-                OnValidSubmit="@HandleValidSubmit"
-                SelectedFiles="@SelectedFiles"
-                SelectedFilesChanged="@SelectedFilesChanged"
-                Sub="@Sub" />
+    <GearForm Progress="@Progress"
+              ProgBarVisible="ProgBarVisible"
+              OnValidSubmit="@HandleSubmit"
+              SelectedFiles="@SelectedFiles"
+              SelectedFilesChanged="@SelectedFilesChanged"
+              Sub="@Sub" />
+
+
+    <MatDialog @bind-IsOpen="@DialogIsOpen">
+        <MatDialogTitle>Flag gear as stolen</MatDialogTitle>
+        <MatDialogContent>
+            <p>You are flagging gear as stolen.</p>
+            <p>Please provide the date of the theft.</p>
+            <p>
+                <MatDatePicker Required="true" Format="yyyy-MM-dd" @bind-Value="@DateStolen" />
+            </p>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton Raised="false" OnClick="@(e => {DialogIsOpen = false; model.Stolen = false; })">Cancel</MatButton>
+            <MatButton Raised="true" OnClick="@HandleIsStolen">OK</MatButton>
+        </MatDialogActions>
+    </MatDialog>
     @code {
 
         double Progress = 0;
         bool ProgBarVisible = false;
         string Sub = "";
-
+        private StolenItem StolenItem;
+        private Boolean DialogIsOpen = false;
+        protected DateTime? DateStolen;
+        bool InitialStolenFlag;
+        private HttpClient httpClient;
 
         public IMatFileUploadEntry[] SelectedFiles;
 
@@ -40,23 +60,100 @@
         }
 
 
+        private void HandleIsStolen()
+        {
+            if (model.Stolen == true)
+            {
+                if (DateStolen.HasValue && DateStolen.Value.Year > 1)
+                {
+                    StolenItem = new StolenItem
+                    {
+                        DateStolen = DateStolen.Value,
+                        id = Guid.NewGuid().ToString(),
+                        Owner = Sub,
+                        Serial = model.Serial
+                    };
+                    DialogIsOpen = false;
+                    HandleValidSubmit();
+                }
+                else
+                {
+                    model.Stolen = false;
+                    StolenItem = null;
+                }
+            }
+            else
+            {
+                StolenItem = null;
+                HandleValidSubmit();
+            }
+        }
+
+        private async void FetchStolenItem(string token) {
+
+            if (!String.IsNullOrEmpty(model.Serial))
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                if (String.IsNullOrEmpty(Sub))
+                {
+                    throw new Exception("Could not get subject from claims");
+                }
+
+                try
+                {
+                    StolenItem = await httpClient.GetFromJsonAsync<StolenItem>(
+                            Configuration["BaseURL"] + "/api/GetStolenItem?serial=" + model.Serial);
+                } 
+                catch (Exception e)
+                {
+                    //Swallow until we figure out how to correctly handle empty returns
+                }
+
+
+
+            }
+
+
+        }
+
+        private void HandleSubmit()
+        {
+            if (model.Stolen == true && InitialStolenFlag != true)
+            {
+                DialogIsOpen = true;
+            }
+            else
+            {
+                HandleValidSubmit();
+            }
+        }
+
         protected override async Task OnInitializedAsync()
         {
             model = AppData.Model;
             Progress = 10;
+
+            httpClient = new HttpClient();
+
+
             var tokenResult = await AuthenticationService.RequestAccessToken();
             if (tokenResult.TryGetToken(out var token))
             {
                 var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                foreach (var claim in state.User.Claims)
-                {
-                    if (claim.Type == "sub") Sub = claim.Value;
+                Sub = state.User.Claims.Where(c => c.Type == "sub").FirstOrDefault().Value;
+                if (model.Stolen) {
+                    FetchStolenItem(token.Value);
                 }
+
             }
+            InitialStolenFlag = model.Stolen;
+
         }
+
+
         private async void HandleValidSubmit()
         {
-
 
             var numFiles = 0;
             if (SelectedFiles != null)
@@ -67,7 +164,6 @@
             Console.WriteLine("Progress: " + Progress);
             ProgBarVisible = true;
 
-            var httpClient = new HttpClient();
             var tokenResult = await AuthenticationService.RequestAccessToken();
 
             if (tokenResult.TryGetToken(out var token))
@@ -107,7 +203,8 @@
                         StateHasChanged();
                         await Task.Delay(1);
 
-                        using (var stream = new System.IO.MemoryStream()) {
+                        using (var stream = new System.IO.MemoryStream())
+                        {
                             await file.WriteToStreamAsync(stream);
                             stream.Seek(0, System.IO.SeekOrigin.Begin);
                             StreamContent sc = new StreamContent(stream);
@@ -136,8 +233,24 @@
                     @Configuration["BaseURL"] + "/api/EditGear",
                     model);
 
-
                 response.EnsureSuccessStatusCode();
+
+                if (InitialStolenFlag == true && model.Stolen == false && StolenItem != null)
+                {
+                    var unflagStolenResponse = await httpClient.DeleteAsync(
+                        Configuration["BaseURL"] + "/api/UnFlagStolen?id=" + StolenItem.id + "&serial=" + StolenItem.Serial);
+                    unflagStolenResponse.EnsureSuccessStatusCode();
+
+                }
+
+                if (model.Stolen == true && StolenItem != null)
+                {
+                    var setStolenResponse = await httpClient.PostAsJsonAsync<StolenItem>(
+                        Configuration["BaseURL"] + "/api/FlagAsStolen",
+                        StolenItem);
+                    setStolenResponse.EnsureSuccessStatusCode();
+                }
+
                 Toaster.Add("Item successfully edited", MatToastType.Success, "Item edited", "edit");
                 await Task.Delay(3500);
                 NavigationManager.NavigateTo("/list");

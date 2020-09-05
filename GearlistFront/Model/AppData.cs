@@ -8,5 +8,9 @@ namespace GearlistFront.Model
     public class AppData
     {
         public GearModel Model { get; set; }
+
+        public IEnumerable<StolenItemFound> ListOfStolenItemFound { get; set; }
+        public IEnumerable<GearModel> ListOfItems { get; set; }
+
     }
 }
