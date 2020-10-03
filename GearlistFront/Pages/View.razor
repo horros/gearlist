@@ -62,7 +62,7 @@
                     <MatListItemSecondaryText>@(purchaseDate ?? "N/A")</MatListItemSecondaryText>
                 </MatListItemText>
             </MatListItem>
-            <MatListItem>
+            <MatListItem OnClick="@(() => { notesDialogIsOpen = true; })">
                 <MatListItemText>
                     <MatListItemPrimaryText>Notes</MatListItemPrimaryText>
                     <MatListItemSecondaryText>@(gear.Notes ?? "N/A")</MatListItemSecondaryText>
@@ -70,7 +70,7 @@
             </MatListItem>
         </MatList>
         <MatButton Raised="true" Icon="edit" OnClick="@(() => Edit())">EDIT</MatButton>
-        <MatButton Raised="true" Icon="delete" OnClick="@(() => { dialogIsOpen = true; })" Style="background-color: #D05A3D">DELETE</MatButton>
+        <MatButton Raised="true" Icon="delete" OnClick="@(() => { stolenDialogIsOpen = true; })" Style="background-color: #D05A3D">DELETE</MatButton>
 
                 </div>
                 <div class="mat-layout-grid-cell">
@@ -93,15 +93,26 @@
             <MatH5 Style="color: #D05A3D">You have flagged this item as stolen</MatH5>
         }
 
-        <MatDialog @bind-IsOpen="@dialogIsOpen">
+        <MatDialog @bind-IsOpen="@stolenDialogIsOpen">
             <MatDialogTitle>Delete gear</MatDialogTitle>
             <MatDialogContent>
                 <p>Are you sure you wish to permanently delete this item?</p>               
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@(e => { dialogIsOpen = false; })">No Thanks</MatButton>
+                <MatButton OnClick="@(e => { stolenDialogIsOpen = false; })">No Thanks</MatButton>
                 <MatButton OnClick="@(() => DeleteItem(gear))">Yes, delete it</MatButton>
             </MatDialogActions>
+        </MatDialog>
+
+        <MatDialog @bind-IsOpen="@notesDialogIsOpen">
+            <MatDialogTitle>Notes</MatDialogTitle>
+            <MatDialogContent>
+                @gear.Notes
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@(() => { notesDialogIsOpen = false; })">Close</MatButton>
+            </MatDialogActions>
+
         </MatDialog>
     }
 
@@ -109,7 +120,8 @@
 
         string currImageUrl;
         string purchaseDate;
-        bool dialogIsOpen = false;
+        bool stolenDialogIsOpen = false;
+        bool notesDialogIsOpen = false;
 
         private GearModel gear;
         string sub = "";
@@ -182,7 +194,7 @@
                 ));
                 if (response.IsSuccessStatusCode)
                 {
-                    dialogIsOpen = false;
+                    stolenDialogIsOpen = false;
                     this.StateHasChanged();
                     Toaster.Add("Item successfully deleted", MatToastType.Success, "Item deleted", "delete") ;
                     gear = null;
@@ -192,7 +204,7 @@
                 }
                 else
                 {
-                    dialogIsOpen = false;
+                    stolenDialogIsOpen = false;
                     this.StateHasChanged();
                     Toaster.Add("Item could not be deleted", MatToastType.Success, "Item not deleted", "delete") ;
                     return;
