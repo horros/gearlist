@@ -28,7 +28,7 @@
                 @(StolenItem.Manufacturer) @(StolenItem.Model), serial number @(StolenItem.Serial)
             </div>
             <div>
-                Reported stolen on @(StolenItem.DateStolen.ToString("yyyy-MM-dd"))
+                Reported stolen on @(StolenItem.DateStolen.ToLocalTime().ToString("yyyy-MM-dd"))
             </div>
  
            <MatButton Raised="true" OnClick="@(() => { DialogIsOpen = true; CurrentItem = StolenItem; })">Inform owner</MatButton>
