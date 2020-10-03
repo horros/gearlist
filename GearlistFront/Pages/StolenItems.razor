@@ -17,10 +17,27 @@
 <MatTextField @bind-Value="@Serial" Label="Serial number" /> <MatButton OnClick="SearchStolen" Raised="true">Search</MatButton>
 
 <MatH5>@Msg</MatH5>
-@if (IsStolen == true)
+
+@if (Items != null)
 {
-    <MatButton Raised="true" OnClick="@(() => { DialogIsOpen = true; })">Inform owner</MatButton>
+    @foreach (var StolenItem in Items)
+    {
+        <MatRipple Class="mat-elevation-z5" Style="padding: 0.5em; margin-bottom: 0.5em;">
+            <MatH5>@StolenItem.Type</MatH5>
+            <div>
+                @(StolenItem.Manufacturer) @(StolenItem.Model), serial number @(StolenItem.Serial)
+            </div>
+            <div>
+                Reported stolen on @(StolenItem.DateStolen.ToString("yyyy-MM-dd"))
+            </div>
+ 
+           <MatButton Raised="true" OnClick="@(() => { DialogIsOpen = true; CurrentItem = StolenItem; })">Inform owner</MatButton>
+
+        </MatRipple>
+    }
 }
+
+
 
 <MatDialog @bind-IsOpen="@DialogIsOpen">
     <MatDialogTitle>Inform owner</MatDialogTitle>
@@ -41,46 +58,44 @@
 
 @code {
 
-    public StolenItem StolenItem { get; set; }
+    public StolenItem CurrentItem { get; set; }
 
     public string Serial { get; set; }
 
+    public IEnumerable<StolenItem> Items { get; set; }
 
     public HttpClient httpClient;
     public string PersonalNote;
 
-    public string Msg;
+    public string Msg = "";
     public bool IsStolen;
     public bool DialogIsOpen = false;
 
     public async void SearchStolen()
     {
 
-        StolenItem = null;
+        Items = null;
         httpClient = new HttpClient();
 
-        StolenItem result = null;
-
-        try {
-            result = await httpClient.GetFromJsonAsync<StolenItem>(
+        try
+        {
+            Items = await httpClient.GetFromJsonAsync<IEnumerable<StolenItem>>(
                 Configuration["BaseURL"] + "/api/StolenItemSearch?serial=" + Serial
             );
-        } 
+        }
         catch (Exception)
         {
             // Swallow until we figure out how to handle 204 no content
         }
 
 
-        if (result != null)
+        if (Items != null && Items.Count() > 0)
         {
-            StolenItem = result;
-            Msg = "This item was marked stolen on " + result.DateStolen.ToString("yyyy-MM-dd") + "!";
-            IsStolen = true;
             this.StateHasChanged();
-        } else
+        }
+        else
         {
-            Msg = "Item not marked stolen";
+            Msg = "No items found";
             this.StateHasChanged();
         }
 
@@ -103,8 +118,12 @@
         StolenItemFound StolenItemFoundMsg = new StolenItemFound
         {
             id = Guid.NewGuid().ToString(),
-            Serial = StolenItem.Serial,
-            Owner = StolenItem.Owner,
+            Serial = CurrentItem.Serial,
+            Owner = CurrentItem.Owner,
+            Type = CurrentItem.Type,
+            Manufacturer = CurrentItem.Manufacturer,
+            Model = CurrentItem.Model,
+            ItemRef = CurrentItem.ItemRef,
             Message = PersonalNote
         };
 
@@ -120,7 +139,8 @@
         Serial = "";
         Msg = "";
         IsStolen = false;
-        StolenItem = null;
+        CurrentItem = null;
+        Items = null;
         this.StateHasChanged();
     }
 

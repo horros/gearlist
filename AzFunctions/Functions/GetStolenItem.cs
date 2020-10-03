@@ -13,7 +13,7 @@ using System.Security.Claims;
 using System.Net;
 using System.Linq;
 using Microsoft.Azure.Documents;
-using AzFunctions.Model;
+using GearlistFront.Model;
 using System.Text.Json;
 using System.Text;
 
@@ -49,6 +49,7 @@ namespace AzFunctions.Functions
             }
 
             string serial = req.Query["serial"];
+            string gearId = req.Query["gearId"];
 
             if (serial == null)
             {
@@ -62,8 +63,7 @@ namespace AzFunctions.Functions
             try
             {
                 StolenItem doc = documentClient.CreateDocumentQuery<StolenItem>(collUri, options).
-                                           Where(d => d.Serial == serial).
-                                           Where(d => d.Owner == subClaim.Value).
+                                           Where(d => d.Owner == subClaim.Value && d.ItemRef == gearId).
                                            AsEnumerable().
                                            SingleOrDefault();
 
@@ -91,7 +91,7 @@ namespace AzFunctions.Functions
                 
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.NotFound);
             }

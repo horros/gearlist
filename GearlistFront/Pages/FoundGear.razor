@@ -18,8 +18,8 @@
 @if (FoundItems != null) { 
     @foreach (var foundItem in FoundItems)
     {
-    <MatRipple Class="mat-elevation-z5" Style="padding: 0.5em" @onclick="@(() => GoToItem(Items.Where(i => i.Serial == foundItem.Serial).FirstOrDefault()))">
-        <MatH6>@(Items.Where(i => i.Serial == foundItem.Serial).FirstOrDefault().Manufacturer + " " + Items.Where(i => i.Serial == foundItem.Serial).FirstOrDefault().Model), serial number @(foundItem.Serial)</MatH6>
+    <MatRipple Class="mat-elevation-z5" Style="padding: 0.5em" @onclick="@(() => GoToItem(foundItem))">
+        <MatH6>@(foundItem.Type): @(foundItem.Manufacturer + " " + foundItem.Model), serial number @(foundItem.Serial)</MatH6>
         <div><strong>Note from finder (if any):</strong><pre>@((MarkupStringSanitized)foundItem.Message)</pre></div>
     </MatRipple>
     }
@@ -30,12 +30,16 @@
     private IEnumerable<StolenItemFound> FoundItems = null;
     private IEnumerable<GearModel> Items;
 
-    protected void GoToItem(GearModel item)
+    protected void GoToItem(StolenItemFound item)
     {
-        AppData.Model = item;
+        GearModel gear = Items.
+            Where(i => i.Id?.ToString() == item.ItemRef).
+            FirstOrDefault();
+
+        AppData.Model = gear;
         Navigation.NavigateTo("/view");
     }
-
+    
     protected override void OnInitialized()
     {
 

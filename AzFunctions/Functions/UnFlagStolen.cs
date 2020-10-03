@@ -11,7 +11,8 @@ using System.Linq;
 using System.Net;
 using Microsoft.Azure.Documents;
 using System.Net.Http;
-using AzFunctions.Model;
+using GearlistFront.Model;
+using System.Collections.Generic;
 
 namespace AzFunctions.Functions
 {
@@ -58,32 +59,31 @@ namespace AzFunctions.Functions
             // Fetch the item from CosmosDB
             Uri collUri = UriFactory.CreateDocumentCollectionUri("gear", "stolen");
             StolenItem stolenItem = documentClient.CreateDocumentQuery<StolenItem>(collUri, options).
-                                           Where(d => d.id == item).
-                                           Where(d => d.Owner == subClaim.Value).
+                                           Where(d => d.id == item && d.Owner == subClaim.Value).
                                            AsEnumerable().
-                                           Single();
-
-            var foundOptions = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(subClaim.Value) };
-
-            Uri collUri2 = UriFactory.CreateDocumentCollectionUri("gear", "found");
-
-            StolenItemFound foundItem = documentClient.CreateDocumentQuery<StolenItemFound>(collUri2, foundOptions).
-                                           Where(d => d.Serial == serial).
-                                           Where(d => d.Owner == subClaim.Value).
-                                           AsEnumerable().
-                                           Single();
-
+                                           SingleOrDefault();
+            
             if (stolenItem != null) {
 
                 var stolenItemURI = UriFactory.CreateDocumentUri("gear", "stolen", stolenItem.id);
                 await documentClient.DeleteDocumentAsync(stolenItemURI, new RequestOptions { PartitionKey = new PartitionKey(serial) });
 
-                if (foundItem != null)
+                var foundOptions = new FeedOptions { EnableCrossPartitionQuery = true, PartitionKey = new PartitionKey(subClaim.Value) };
+
+                Uri collUri2 = UriFactory.CreateDocumentCollectionUri("gear", "found");
+
+                IEnumerable<StolenItemFound> foundItems = 
+                    documentClient.CreateDocumentQuery<StolenItemFound>(collUri2, foundOptions).
+                        Where(d => d.ItemRef == stolenItem.ItemRef && d.Owner == subClaim.Value).
+                        AsEnumerable();
+
+                
+                foreach (StolenItemFound foundItem in foundItems)
                 {
                     var foundItemURI = UriFactory.CreateDocumentUri("gear", "found", foundItem.id);
                     await documentClient.DeleteDocumentAsync(foundItemURI, new RequestOptions { PartitionKey = new PartitionKey(subClaim.Value) });
                 }
-
+                
                 return new HttpResponseMessage(statusCode: HttpStatusCode.NoContent);
                 
             } 

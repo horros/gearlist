@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Security.Claims;
-using AzFunctions.Model;
+using GearlistFront.Model;
 using System.Net.Http;
 using System.Net;
 using Microsoft.Azure.WebJobs.Extensions.Http;

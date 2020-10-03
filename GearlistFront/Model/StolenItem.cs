@@ -13,7 +13,15 @@ namespace GearlistFront.Model
         public string Serial { get; set; }
         [JsonPropertyName("DateStolen")]
         public DateTime DateStolen { get; set; }
+        [JsonPropertyName("Type")]
+        public string Type { get; set; }
+        [JsonPropertyName("Manufacturer")]
+        public string Manufacturer { get; set; }
+        [JsonPropertyName("Model")]
+        public string Model { get; set; }
         [JsonPropertyName("Owner")]
         public string Owner { get; set; }
+        [JsonPropertyName("ItemRef")]
+        public string ItemRef { get; set; }
     }
 }

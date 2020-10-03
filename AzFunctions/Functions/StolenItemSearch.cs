@@ -13,9 +13,10 @@ using System.Security.Claims;
 using System.Net;
 using System.Linq;
 using Microsoft.Azure.Documents;
-using AzFunctions.Model;
+using GearlistFront.Model;
 using System.Text.Json;
 using System.Text;
+using System.Collections.Generic;
 
 namespace AzFunctions.Functions
 {
@@ -44,11 +45,10 @@ namespace AzFunctions.Functions
             Uri collUri = UriFactory.CreateDocumentCollectionUri("gear", "stolen");
             try
             {
-                StolenItem doc = documentClient.CreateDocumentQuery<StolenItem>(collUri, options).
+                IEnumerable<StolenItem> docs = documentClient.CreateDocumentQuery<StolenItem>(collUri, options).
                                            Where(d => d.Serial == serial).
-                                           AsEnumerable().
-                                           Single();
-                if (doc != null)
+                                           AsEnumerable();
+                if (docs != null)
                 {
                     // Force the JSON serializer to not change PascalCase names
                     // to camelCase just to make it easier with the frontend
@@ -57,7 +57,7 @@ namespace AzFunctions.Functions
                         PropertyNamingPolicy = null
                     };
 
-                    var returnValue = System.Text.Json.JsonSerializer.Serialize(doc, jsonOpts);
+                    var returnValue = System.Text.Json.JsonSerializer.Serialize(docs, jsonOpts);
 
                     return new HttpResponseMessage(HttpStatusCode.OK)
                     {

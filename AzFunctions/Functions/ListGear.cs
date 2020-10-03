@@ -6,7 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using AzFunctions.Model;
+using GearlistFront.Model;
 using System.Collections.Generic;
 using Microsoft.Azure.Documents.Client;
 using System.Linq;

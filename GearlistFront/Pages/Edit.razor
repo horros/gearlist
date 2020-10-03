@@ -41,9 +41,9 @@
     </MatDialog>
     @code {
 
-        double Progress = 0;
-        bool ProgBarVisible = false;
-        string Sub = "";
+            double Progress = 0;
+            bool ProgBarVisible = false;
+            string Sub = "";
         private StolenItem StolenItem;
         private Boolean DialogIsOpen = false;
         protected DateTime? DateStolen;
@@ -71,7 +71,12 @@
                         DateStolen = DateStolen.Value,
                         id = Guid.NewGuid().ToString(),
                         Owner = Sub,
-                        Serial = model.Serial
+                        Serial = model.Serial,
+                        Type = model.Type,
+                        Manufacturer = model.Manufacturer,
+                        Model = model.Model,
+                        ItemRef = model.Id?.ToString()
+
                     };
                     DialogIsOpen = false;
                     HandleValidSubmit();
@@ -103,8 +108,8 @@
                 try
                 {
                     StolenItem = await httpClient.GetFromJsonAsync<StolenItem>(
-                            Configuration["BaseURL"] + "/api/GetStolenItem?serial=" + model.Serial);
-                } 
+                            Configuration["BaseURL"] + "/api/GetStolenItem?serial=" + model.Serial + "&gearId=" + model.Id);
+                }
                 catch (Exception)
                 {
                     //Swallow until we figure out how to correctly handle empty returns

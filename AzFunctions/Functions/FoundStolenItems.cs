@@ -13,7 +13,7 @@ using System.Security.Claims;
 using System.Net;
 using System.Linq;
 using Microsoft.Azure.Documents;
-using AzFunctions.Model;
+using GearlistFront.Model;
 using System.Text.Json;
 using System.Text;
 using System.Collections.Generic;
