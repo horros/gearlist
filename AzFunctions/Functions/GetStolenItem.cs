@@ -91,7 +91,7 @@ namespace AzFunctions.Functions
                 
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new HttpResponseMessage(statusCode: HttpStatusCode.NotFound);
             }

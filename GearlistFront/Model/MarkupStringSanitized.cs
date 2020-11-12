@@ -16,9 +16,9 @@ namespace GearlistFront.Model
 
         public string Value { get; }
 
-        public static explicit operator MarkupStringSanitized(string value) => new MarkupStringSanitized(value);
+        public static explicit operator MarkupStringSanitized(string value) => new(value);
 
-        public static explicit operator MarkupString(MarkupStringSanitized value) => new MarkupString(value.Value);
+        public static explicit operator MarkupString(MarkupStringSanitized value) => new(value.Value);
 
         public override string ToString() => Value ?? string.Empty;
 
