@@ -18,7 +18,8 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '5.x'
+    version: '6.x'
+    includePreviewVersions: true
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -29,7 +30,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
-    arguments: '-c Release /p:PublishTrimmed=false'    
+    arguments: '-c Release'    
     publishWebProjects: true
     zipAfterPublish: false
     
